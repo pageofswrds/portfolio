@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ZoomControls } from './components/ZoomControls'
 import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
-import { projects, type ProjectContent } from './content'
+import { BlogModal } from './components/BlogModal'
+import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 
 // Consistent image height for all cards
 const IMAGE_HEIGHT = 260
-const CARD_HEIGHT = IMAGE_HEIGHT + 72 // image + text area
+const CARD_HEIGHT = IMAGE_HEIGHT + 96 // image + text area
 const VERTICAL_GAP = 40
 const VERTICAL_SPACING = CARD_HEIGHT + VERTICAL_GAP
+const DEFAULT_ASPECT_RATIO = 16 / 10
 
 // Starting position for the project stack
 const STACK_START_X = 100
@@ -28,9 +30,48 @@ function getProjectPosition(index: number) {
   }
 }
 
+// Blog section - horizontal row extending right from intro
+const BLOG_START_X = 900 // Well clear of the intro text/buttons
+const BLOG_START_Y = 160 // Same level as intro
+const BLOG_GAP = 80 // Consistent gap between blog cards
+
+// Organic vertical offsets for blog cards (adds visual interest to horizontal row)
+const VERTICAL_OFFSETS = [0, 60, 20, 80, 40, 10, 70, 30, 50]
+
 function App() {
   const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
+  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
+  const [blogAspectRatios, setBlogAspectRatios] = useState<Record<string, number>>({})
+
+  // Load blog thumbnail dimensions to calculate card widths
+  useEffect(() => {
+    blogPosts.forEach((post) => {
+      if (!post.thumbnail) return
+      const img = new Image()
+      img.onload = () => {
+        setBlogAspectRatios((prev) => ({
+          ...prev,
+          [post.id]: img.naturalWidth / img.naturalHeight,
+        }))
+      }
+      img.src = post.thumbnail
+    })
+  }, [])
+
+  // Calculate cumulative x positions for blog cards based on actual widths
+  const blogPositions = blogPosts.reduce<number[]>((positions, _post, index) => {
+    if (index === 0) {
+      positions.push(BLOG_START_X)
+    } else {
+      const prevPost = blogPosts[index - 1]
+      const prevAspectRatio = blogAspectRatios[prevPost.id] || DEFAULT_ASPECT_RATIO
+      const prevWidth = IMAGE_HEIGHT * prevAspectRatio
+      const prevX = positions[index - 1]
+      positions.push(prevX + prevWidth + BLOG_GAP)
+    }
+    return positions
+  }, [])
 
   return (
     <>
@@ -211,11 +252,45 @@ function App() {
             />
           )
         })}
+
+        {/* Blog section label */}
+        <text
+          x={BLOG_START_X}
+          y={BLOG_START_Y - 20}
+          fill="var(--tx-tertiary)"
+          fontSize="14"
+          fontFamily="var(--font-mono)"
+          fontWeight="400"
+        >
+          writing
+        </text>
+
+        {/* Blog cards - horizontal row with organic vertical variation */}
+        {blogPosts.map((post, index) => {
+          const yOffset = VERTICAL_OFFSETS[index % VERTICAL_OFFSETS.length]
+          return (
+            <ProjectCard
+              key={post.id}
+              x={blogPositions[index] ?? BLOG_START_X}
+              y={BLOG_START_Y + yOffset}
+              imageHeight={IMAGE_HEIGHT}
+              title={post.title}
+              year={post.subtitle.split('•')[0]?.trim() || ''}
+              thumbnail={post.thumbnail}
+              onClick={() => setSelectedBlogPost(post)}
+            />
+          )
+        })}
       </Canvas>
 
       <ProjectModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
+      />
+
+      <BlogModal
+        post={selectedBlogPost}
+        onClose={() => setSelectedBlogPost(null)}
       />
     </>
   )

@@ -10,7 +10,7 @@ interface ProjectCardProps {
   onClick?: () => void
 }
 
-const TEXT_AREA_HEIGHT = 72
+const TEXT_AREA_HEIGHT = 96
 const DEFAULT_ASPECT_RATIO = 16 / 10
 
 export function ProjectCard({
@@ -78,28 +78,47 @@ export function ProjectCard({
         </>
       )}
 
-      {/* Title */}
-      <text
-        x="16"
-        y={imageHeight + 32}
-        fill="var(--tx-primary)"
-        fontSize="18"
-        fontFamily="var(--font-sans)"
-        fontWeight="500"
+      {/* Title and Year - using foreignObject for text wrapping */}
+      <foreignObject
+        x="0"
+        y={imageHeight}
+        width={width}
+        height={TEXT_AREA_HEIGHT}
       >
-        {title}
-      </text>
-
-      {/* Year */}
-      <text
-        x="16"
-        y={imageHeight + 56}
-        fill="var(--tx-tertiary)"
-        fontSize="15"
-        fontFamily="var(--font-mono)"
-      >
-        {year}
-      </text>
+        <div
+          style={{
+            padding: '20px 16px 12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          <div
+            style={{
+              color: 'var(--tx-primary)',
+              fontSize: '18px',
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 500,
+              lineHeight: 1.2,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              color: 'var(--tx-tertiary)',
+              fontSize: '15px',
+              fontFamily: 'var(--font-mono)',
+            }}
+          >
+            {year}
+          </div>
+        </div>
+      </foreignObject>
     </g>
   )
 }

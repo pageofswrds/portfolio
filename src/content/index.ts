@@ -64,3 +64,6 @@ export const projects: ProjectContent[] = Object.entries(mdxModules)
 export function getProject(id: string): ProjectContent | undefined {
   return projects.find((p) => p.id === id)
 }
+
+// Re-export blog content
+export { blogPosts, getBlogPost, type BlogContent } from './blog'
