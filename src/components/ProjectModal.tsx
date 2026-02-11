@@ -60,18 +60,6 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         }}
         className="elevation-2"
       >
-        {/* Header image */}
-        <div
-          style={{
-            width: '100%',
-            height: '280px',
-            backgroundImage: `url(${project.thumbnail})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            flexShrink: 0,
-          }}
-        />
-
         {/* Content */}
         <div
           style={{
@@ -100,7 +88,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
               marginTop: '0.5rem',
             }}
           >
-            {project.subtitle} · {project.date}
+            {project.subtitle} · {project.year}
           </p>
 
           <div

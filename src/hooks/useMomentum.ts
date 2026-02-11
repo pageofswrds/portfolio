@@ -70,14 +70,14 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
     state = {
       vx: 0,
       vy: 0,
-      timestamp: Date.now(),
+      timestamp: performance.now(),
       lastX: x,
       lastY: y,
     }
   }
 
   function track(x: number, y: number) {
-    const now = Date.now()
+    const now = performance.now()
     const elapsed = now - state.timestamp
     state.timestamp = now
 
@@ -128,10 +128,10 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
       return
     }
 
-    const startTime = Date.now()
+    const startTime = performance.now()
 
     function animate() {
-      const elapsed = Date.now() - startTime
+      const elapsed = performance.now() - startTime
       let moving = false
       let dx = 0
       let dy = 0

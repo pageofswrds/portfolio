@@ -5,7 +5,7 @@ interface ProjectCardProps {
   y: number
   imageHeight: number
   title: string
-  date: string
+  year: string
   thumbnail?: string
   onClick?: () => void
 }
@@ -18,7 +18,7 @@ export function ProjectCard({
   y,
   imageHeight,
   title,
-  date,
+  year,
   thumbnail,
   onClick
 }: ProjectCardProps) {
@@ -90,7 +90,7 @@ export function ProjectCard({
         {title}
       </text>
 
-      {/* Date */}
+      {/* Year */}
       <text
         x="16"
         y={imageHeight + 56}
@@ -98,7 +98,7 @@ export function ProjectCard({
         fontSize="15"
         fontFamily="var(--font-mono)"
       >
-        {date}
+        {year}
       </text>
     </g>
   )

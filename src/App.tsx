@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
+import { ZoomControls } from './components/ZoomControls'
 import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
 import { projects, type ProjectContent } from './content'
@@ -29,11 +30,13 @@ function getProjectPosition(index: number) {
 
 function App() {
   const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
+  const [zoomScale, setZoomScale] = useState(1)
 
   return (
     <>
       <ThemeToggle />
-      <Canvas>
+      <ZoomControls scale={zoomScale} />
+      <Canvas onZoomChange={setZoomScale}>
         {/* Intro section - upper left area */}
         <g transform="translate(100, 160)">
           {/* Greeting */}
@@ -64,7 +67,7 @@ function App() {
             fontSize="18"
             fontFamily="var(--font-sans)"
           >
-            designer, developer, claude code cli evangelist, etc.
+            designer, developer, claude code cli cave dweller, etc.
           </text>
 
           {/* Buttons */}
@@ -152,8 +155,8 @@ function App() {
               y={pos.y}
               imageHeight={IMAGE_HEIGHT}
               title={project.title}
-              date={project.date}
-              thumbnail={project.thumbnail}
+              year={project.year}
+              thumbnail={project.thumbnailSmall}
               onClick={() => setSelectedProject(project)}
             />
           )

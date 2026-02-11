@@ -12,8 +12,10 @@ const mdxModules = import.meta.glob<{
     title?: string
     subtitle?: string
     published?: string
+    year?: string
     location?: string
     thumbnail?: string
+    thumbnailSmall?: string
     order?: number
     visible?: boolean
   }
@@ -25,8 +27,10 @@ export interface ProjectContent {
   title: string
   subtitle: string
   date: string
+  year: string
   location: string
   thumbnail: string
+  thumbnailSmall: string
   order: number
   visible: boolean
   Component: React.ComponentType<MDXContentProps>
@@ -44,8 +48,10 @@ export const projects: ProjectContent[] = Object.entries(mdxModules)
       title: frontmatter.title || slug,
       subtitle: frontmatter.subtitle || '',
       date: frontmatter.published || '',
+      year: frontmatter.year || '',
       location: frontmatter.location || '',
       thumbnail: frontmatter.thumbnail || '',
+      thumbnailSmall: frontmatter.thumbnailSmall || frontmatter.thumbnail || '',
       order: frontmatter.order ?? 999,
       visible: frontmatter.visible ?? true,
       Component: module.default,
