@@ -20,7 +20,7 @@ const STACK_START_X = 100
 const STACK_START_Y = 520
 
 // Organic horizontal offsets for each card (adds visual interest)
-const HORIZONTAL_OFFSETS = [0, 180, 60, 220, 120, 40, 200, 100, 160]
+const HORIZONTAL_OFFSETS = [0, -60, 40, -20, 120, -80, 60, -20]
 
 // Generate position for a project card
 function getProjectPosition(index: number) {
@@ -80,7 +80,7 @@ function App() {
       <ZoomControls scale={zoomScale} />
       <Canvas onZoomChange={setZoomScale}>
         {/* ASCII flow field - top left, away from main content */}
-        <AsciiFlowField x={-1100} y={100} cols={120} rows={50} />
+        <AsciiFlowField x={1200} y={1200} cols={120} rows={50} />
 
         {/* Intro section - upper left area */}
         <g transform="translate(100, 160)">
