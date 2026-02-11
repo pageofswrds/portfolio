@@ -71,15 +71,25 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
     svg.transition().duration(200).call(zoomRef.current.transform, newTransform)
   }, [])
 
+  const recenter = useCallback(() => {
+    if (!svgRef.current || !zoomRef.current) return
+    const svg = d3.select(svgRef.current)
+    momentum.cancel()
+    const initialTransform = d3.zoomIdentity.translate(40, 20).scale(1)
+    svg.transition().duration(300).call(zoomRef.current.transform, initialTransform)
+  }, [momentum])
+
   // Expose zoom functions via window for the zoom controls
   useEffect(() => {
     (window as any).__canvasZoomIn = zoomIn;
     (window as any).__canvasZoomOut = zoomOut;
+    (window as any).__canvasRecenter = recenter;
     return () => {
       delete (window as any).__canvasZoomIn;
       delete (window as any).__canvasZoomOut;
+      delete (window as any).__canvasRecenter;
     }
-  }, [zoomIn, zoomOut])
+  }, [zoomIn, zoomOut, recenter])
 
   useEffect(() => {
     if (!svgRef.current || !gRef.current) return
