@@ -3,26 +3,32 @@ import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
-import { projects, type Project } from './data/projects'
+import { projects, type ProjectContent } from './content'
 
 // Consistent image height for all cards
 const IMAGE_HEIGHT = 260
+const CARD_HEIGHT = IMAGE_HEIGHT + 72 // image + text area
+const VERTICAL_GAP = 40
+const VERTICAL_SPACING = CARD_HEIGHT + VERTICAL_GAP
 
-// Fixed organic positions for project cards - more spread out
-const projectPositions = [
-  // Projects going down (case studies) - below and slightly right of intro
-  { x: 340, y: 480 },
-  { x: 80, y: 980 },
-  { x: 540, y: 1020 },
+// Starting position for the project stack
+const STACK_START_X = 100
+const STACK_START_Y = 480
 
-  // Projects going right (smaller items) - to the right of intro
-  { x: 820, y: 100 },
-  { x: 1220, y: 60 },
-  { x: 1180, y: 520 },
-]
+// Organic horizontal offsets for each card (adds visual interest)
+const HORIZONTAL_OFFSETS = [0, 180, 60, 220, 120, 40, 200, 100, 160]
+
+// Generate position for a project card
+function getProjectPosition(index: number) {
+  const xOffset = HORIZONTAL_OFFSETS[index % HORIZONTAL_OFFSETS.length]
+  return {
+    x: STACK_START_X + xOffset,
+    y: STACK_START_Y + index * VERTICAL_SPACING,
+  }
+}
 
 function App() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
 
   return (
     <>
@@ -136,10 +142,9 @@ function App() {
           </g>
         </g>
 
-        {/* Project cards in organic positions */}
+        {/* Project cards in vertical stack with organic horizontal variation */}
         {projects.map((project, index) => {
-          const pos = projectPositions[index]
-          if (!pos) return null
+          const pos = getProjectPosition(index)
           return (
             <ProjectCard
               key={project.id}
