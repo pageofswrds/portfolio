@@ -80,7 +80,7 @@ function App() {
       <ZoomControls scale={zoomScale} />
       <Canvas onZoomChange={setZoomScale}>
         {/* ASCII flow field - top left, away from main content */}
-        <AsciiFlowField x={-500} y={100} />
+        <AsciiFlowField x={-900} y={100} cols={120} rows={50} />
 
         {/* Intro section - upper left area */}
         <g transform="translate(100, 160)">
