@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
-import type { Project } from '../data/projects'
+import type { ProjectContent } from '../content'
+import { mdxComponents } from './mdx'
 
 interface ProjectModalProps {
-  project: Project | null
+  project: ProjectContent | null
   onClose: () => void
 }
 
@@ -17,6 +18,8 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
   }, [onClose])
 
   if (!project) return null
+
+  const { Component } = project
 
   return (
     <div
@@ -46,10 +49,10 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         style={{
           position: 'relative',
           width: '100%',
-          maxWidth: '640px',
-          maxHeight: '80vh',
+          maxWidth: '720px',
+          maxHeight: '85vh',
           background: 'var(--bg-card)',
-          borderRadius: 'var(--radius)',
+          borderRadius: '12px',
           border: '1px solid var(--bd-primary)',
           overflow: 'hidden',
           display: 'flex',
@@ -61,7 +64,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         <div
           style={{
             width: '100%',
-            height: '240px',
+            height: '280px',
             backgroundImage: `url(${project.thumbnail})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -72,7 +75,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         {/* Content */}
         <div
           style={{
-            padding: '1.5rem',
+            padding: '2rem',
             overflowY: 'auto',
             flex: 1,
           }}
@@ -80,7 +83,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           <h1
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '1.75rem',
+              fontSize: '2rem',
               fontWeight: 400,
               color: 'var(--tx-primary)',
               margin: 0,
@@ -92,7 +95,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           <p
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '0.875rem',
+              fontSize: '0.9rem',
               color: 'var(--tx-tertiary)',
               marginTop: '0.5rem',
             }}
@@ -102,24 +105,20 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
 
           <div
             style={{
-              marginTop: '1.5rem',
+              marginTop: '2rem',
               fontFamily: 'var(--font-sans)',
               fontSize: '1rem',
-              lineHeight: 1.6,
               color: 'var(--tx-secondary)',
             }}
           >
-            {/* Placeholder content - will be replaced with MDX */}
-            <p>
-              Project content will go here. This will eventually render the MDX
-              content from your project files.
-            </p>
+            <Component components={mdxComponents} />
           </div>
         </div>
 
         {/* Close button */}
         <button
           onClick={onClose}
+          className="cursor-pointer"
           style={{
             position: 'absolute',
             top: '0.75rem',
@@ -130,7 +129,6 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
             border: 'none',
             background: 'var(--bg-base)',
             color: 'var(--tx-primary)',
-            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
