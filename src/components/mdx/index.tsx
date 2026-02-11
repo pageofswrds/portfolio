@@ -174,6 +174,16 @@ export const mdxComponents = {
       }}
     />
   ),
+  ol: (props: ComponentPropsWithoutRef<'ol'>) => (
+    <ol
+      {...props}
+      style={{
+        paddingLeft: '2.5rem',
+        marginBottom: '1rem',
+        lineHeight: 1.7,
+      }}
+    />
+  ),
   li: (props: ComponentPropsWithoutRef<'li'>) => (
     <li
       {...props}
