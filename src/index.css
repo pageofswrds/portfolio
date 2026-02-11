@@ -1,0 +1,235 @@
+/* ============================================
+   FONTS
+   ============================================ */
+
+@font-face {
+  font-family: 'Whyte';
+  src: url('./fonts/Whyte/ABCWhyteEdu-Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Whyte';
+  src: url('./fonts/Whyte/ABCWhyte-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Whyte Inktrap';
+  src: url('./fonts/WhyteInktrap/ABCWhyteInktrap-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Whyte Inktrap';
+  src: url('./fonts/WhyteInktrap/ABCWhyteInktrap-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraktion Mono';
+  src: url('./fonts/Fraktion/PPFraktionMono-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraktion Mono';
+  src: url('./fonts/Fraktion/PPFraktionMono-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraktion Mono';
+  src: url('./fonts/Fraktion/PPFraktionMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraktion Mono';
+  src: url('./fonts/Fraktion/PPFraktionMono-RegularItalic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraktion Mono';
+  src: url('./fonts/Fraktion/PPFraktionMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraktion Mono';
+  src: url('./fonts/Fraktion/PPFraktionMono-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ============================================
+   CSS VARIABLES & DESIGN TOKENS
+   ============================================ */
+
+:root {
+  /* Font families */
+  --font-sans: 'Whyte', system-ui, -apple-system, sans-serif;
+  --font-display: 'Whyte Inktrap', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fraktion Mono', ui-monospace, monospace;
+
+  /* Base radius */
+  --radius: 0.5rem;
+}
+
+/* ========== LIGHT THEME (DEFAULT) ========== */
+:root,
+.light {
+  --dark-800: 95 4% 24%;
+  --dark-900: 100 3% 15%;
+  --dark-950: 30 13% 9%;
+  --light-100: 38 49% 89%;
+  --light-150: 36 60% 94%;
+  --light-200: 41 32% 90%;
+  --light-300: 39 29% 84%;
+  --light-400: 39 30% 80%;
+  --light-600: 35 13% 50%;
+  --light-900: 32 14% 15%;
+  --accent: 230 100% 54%;
+
+  /* Semantic state colors */
+  --color-error: 5 75% 55%;
+  --color-warning: 33 90% 60%;
+  --color-success: 101 20% 45%;
+}
+
+/* ========== DARK THEME ========== */
+.dark {
+  --dark-800: 203 26% 96%;
+  --dark-900: 180 100% 99%;
+  --dark-950: 180 100% 99%;
+  --light-100: 30 13% 9%;
+  --light-150: 32 14% 15%;
+  --light-200: 30 13% 9%;
+  --light-300: 32 14% 15%;
+  --light-400: 36 14% 18%;
+  --light-600: 38 50% 80%;
+  --light-900: 38 50% 80%;
+  --accent: 216 100% 59%;
+
+  --color-error: 0 100% 64%;
+  --color-warning: 32 90% 68%;
+}
+
+/* ========== SEMANTIC TOKENS ========== */
+:root {
+  /* Text colors */
+  --tx-primary: hsl(var(--dark-800));
+  --tx-secondary: hsl(var(--dark-800) / 0.75);
+  --tx-tertiary: hsl(var(--dark-800) / 0.5);
+  --tx-disabled: hsl(var(--dark-800) / 0.22);
+  --tx-button: hsl(var(--light-100));
+  --tx-accent: hsl(var(--accent) / 0.95);
+
+  /* Background colors */
+  --bg-outer: hsl(var(--dark-950));
+  --bg-base: hsl(var(--light-100));
+  --bg-card: hsl(var(--light-200));
+  --bg-card-hover: hsl(var(--light-300));
+  --bg-card-pressed: hsl(var(--light-400));
+  --bg-hover: hsl(var(--dark-800) / 0.12);
+  --bg-pressed: hsl(var(--dark-800) / 0.15);
+  --bg-button: hsl(var(--dark-800));
+  --bg-button-hover: hsl(var(--dark-900));
+  --bg-accent: hsl(var(--accent) / 0.08);
+
+  /* Border colors */
+  --bd-primary: hsl(var(--dark-800) / 0.15);
+  --bd-secondary: hsl(var(--dark-800) / 0.08);
+  --bd-hover: hsl(var(--dark-800) / 0.17);
+  --bd-accent: hsl(var(--accent) / 0.35);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-base);
+  color: var(--tx-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth theme transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* Custom cursors */
+html, body {
+  cursor: url('/cursors/cursor.svg') 4 4, auto;
+}
+
+.cursor-pointer, a, button, [role="button"] {
+  cursor: url('/cursors/cursor-point.svg') 4 4, pointer;
+}
+
+.cursor-grab {
+  cursor: url('/cursors/cursor-grip.svg') 12 12, grab;
+}
+
+.cursor-grabbing {
+  cursor: url('/cursors/cursor-grip.svg') 12 12, grabbing;
+}
+
+/* Utility classes */
+.elevation-1 {
+  box-shadow: 0px 0px 4px -2px rgba(24, 39, 75, 0.08), 0px 0px 4px -2px rgba(24, 39, 75, 0.12);
+}
+
+.elevation-2 {
+  box-shadow: 0px 4px 12px -2px rgba(24, 39, 75, 0.12), 0px 2px 6px -2px rgba(24, 39, 75, 0.08);
+}
