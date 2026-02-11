@@ -5,6 +5,7 @@ import { ZoomControls } from './components/ZoomControls'
 import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
 import { BlogModal } from './components/BlogModal'
+import { AsciiFlowField } from './components/AsciiFlowField'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 
 // Consistent image height for all cards
@@ -78,6 +79,9 @@ function App() {
       <ThemeToggle />
       <ZoomControls scale={zoomScale} />
       <Canvas onZoomChange={setZoomScale}>
+        {/* ASCII flow field - top left, away from main content */}
+        <AsciiFlowField x={-500} y={100} />
+
         {/* Intro section - upper left area */}
         <g transform="translate(100, 160)">
           {/* Greeting */}

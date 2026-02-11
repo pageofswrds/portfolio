@@ -143,6 +143,12 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
 
     const { minVelocity, amplitude, timeConstant, stopThreshold } = settings
 
+    // Prune stale samples before computing velocity
+    // This handles the case where user stops moving but keeps holding before releasing
+    const now = performance.now()
+    const cutoff = now - VELOCITY_WINDOW
+    state.samples = state.samples.filter(s => s.t >= cutoff)
+
     // Compute velocity from recent samples (robust across different event frequencies)
     const { vx, vy } = computeVelocity(state.samples)
 
