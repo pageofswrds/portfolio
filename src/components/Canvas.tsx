@@ -102,6 +102,12 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
       .scaleExtent([0.3, 2])
       // Filter: allow drag and pinch-to-zoom (ctrl+wheel), block regular wheel
       .filter((event) => {
+        // Ignore events from inside foreignObject (e.g., ASCII flow field)
+        const target = event.target as Element
+        if (target.closest?.('foreignObject')) {
+          return false
+        }
+
         // Allow touch events (for pinch zoom on mobile/trackpad)
         if (event.type === 'touchstart' || event.type === 'touchmove' || event.type === 'touchend') {
           return true

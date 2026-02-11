@@ -106,8 +106,18 @@ export function AsciiFlowField({
     }
   }, [rows, cols])
 
+  // Handle mouse down (to prevent canvas drag)
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    prevMouseRef.current = { x: mouseX, y: mouseY, time: performance.now() }
+  }, [])
+
   // Handle mouse movement
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
     const rect = e.currentTarget.getBoundingClientRect()
     // Calculate actual cell width from rendered element
     const actualCellWidth = rect.width / cols
@@ -155,6 +165,71 @@ export function AsciiFlowField({
     prevMouseRef.current = null
   }, [])
 
+  // Handle touch events (for mobile)
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation() // Prevent canvas panning
+
+    if (e.touches.length !== 1) return // Only handle single touch
+
+    const touch = e.touches[0]
+    const rect = e.currentTarget.getBoundingClientRect()
+    const actualCellWidth = rect.width / cols
+    const actualCellHeight = rect.height / rows
+    const touchX = touch.clientX - rect.left
+    const touchY = touch.clientY - rect.top
+    const now = performance.now()
+
+    if (prevMouseRef.current) {
+      const dt = (now - prevMouseRef.current.time) / 1000
+      if (dt > 0 && dt < 0.1) {
+        const velX = (touchX - prevMouseRef.current.x) / dt / 50
+        const velY = (touchY - prevMouseRef.current.y) / dt / 50
+
+        const col = Math.floor(touchX / actualCellWidth)
+        const row = Math.floor(touchY / actualCellHeight)
+        const radius = 3
+
+        setGrid(prevGrid => {
+          const newGrid = prevGrid.map(r => r.map(c => ({ ...c })))
+
+          for (let dr = -radius; dr <= radius; dr++) {
+            for (let dc = -radius; dc <= radius; dc++) {
+              const nr = row + dr
+              const nc = col + dc
+              if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                const dist = Math.sqrt(dr * dr + dc * dc)
+                const falloff = Math.max(0, 1 - dist / radius)
+                newGrid[nr][nc].vx += velX * falloff * 0.3
+                newGrid[nr][nc].vy += velY * falloff * 0.3
+              }
+            }
+          }
+
+          return newGrid
+        })
+      }
+    }
+
+    prevMouseRef.current = { x: touchX, y: touchY, time: now }
+  }, [rows, cols])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation() // Prevent canvas from starting a pan
+    if (e.touches.length !== 1) return
+
+    const touch = e.touches[0]
+    const rect = e.currentTarget.getBoundingClientRect()
+    const touchX = touch.clientX - rect.left
+    const touchY = touch.clientY - rect.top
+
+    prevMouseRef.current = { x: touchX, y: touchY, time: performance.now() }
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    prevMouseRef.current = null
+  }, [])
+
   // Render grid to ASCII
   const asciiContent = grid
     .map(row =>
@@ -177,7 +252,7 @@ export function AsciiFlowField({
         fontSize="14"
         fontFamily="var(--font-mono)"
       >
-        interact with me! (desktop cursors only rn)
+        interact with me!
       </text>
       <foreignObject x={x} y={y} width={estimatedWidth} height={height + padding * 2 + 2}>
         <div
@@ -193,12 +268,17 @@ export function AsciiFlowField({
           }}
         >
         <div
+          onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           style={{
             height,
             overflow: 'hidden',
             cursor: 'crosshair',
+            touchAction: 'none', // Prevent browser handling of touch
           }}
         >
           <pre
