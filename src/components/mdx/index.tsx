@@ -20,6 +20,7 @@ export function VideoPlayer({ videoUrl, gifUrl, width = '100%', height = 'auto' 
       style={{
         width,
         height,
+        maxWidth: '100%',
         borderRadius: '8px',
         margin: '1rem 0',
       }}

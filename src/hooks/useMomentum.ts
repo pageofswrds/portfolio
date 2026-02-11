@@ -34,8 +34,8 @@ export interface MomentumResult {
     onUpdate: (x: number, y: number) => void,
     onComplete?: () => void
   ) => void
-  /** Cancel any running momentum animation */
-  cancel: () => void
+  /** Cancel any running momentum animation, returns true if momentum was active */
+  cancel: () => boolean
 }
 
 const defaults: Required<MomentumConfig> = {
@@ -58,11 +58,13 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
 
   let rafId: number | null = null
 
-  function cancel() {
+  function cancel(): boolean {
     if (rafId !== null) {
       cancelAnimationFrame(rafId)
       rafId = null
+      return true
     }
+    return false
   }
 
   function start(x: number, y: number) {

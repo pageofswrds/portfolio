@@ -103,13 +103,21 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
         }
         return true
       })
-      .on('start', (event) => {
+      .on('start', () => {
         // Cancel any running momentum when user starts dragging
-        momentum.cancel()
+        const wasMomentumActive = momentum.cancel()
         setIsDragging(true)
 
+        // If momentum was running, d3-zoom's internal state is stale.
+        // Sync it with the actual position before starting the new pan.
+        if (wasMomentumActive) {
+          const { x, y, k } = transformRef.current
+          const currentTransform = d3.zoomIdentity.translate(x, y).scale(k)
+          svg.call(zoom.transform, currentTransform)
+        }
+
         // Start tracking velocity
-        const { x, y } = event.transform
+        const { x, y } = transformRef.current
         momentum.start(x, y)
       })
       .on('zoom', (event) => {
