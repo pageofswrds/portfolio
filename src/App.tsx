@@ -153,7 +153,7 @@ function App() {
 
             {/* Resume button */}
             <a
-              href="/resume.pdf"
+              href="https://schultzdavidg-portfolio.s3.us-west-1.amazonaws.com/files/davidschultz-resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
               style={{ cursor: 'pointer' }}

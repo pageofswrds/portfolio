@@ -177,7 +177,7 @@ export function AsciiFlowField({
         fontSize="14"
         fontFamily="var(--font-mono)"
       >
-        interact with me!
+        interact with me! (desktop cursors only rn)
       </text>
       <foreignObject x={x} y={y} width={estimatedWidth} height={height + padding * 2 + 2}>
         <div
