@@ -88,7 +88,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
               marginTop: '0.5rem',
             }}
           >
-            {project.subtitle} · {project.year}
+            {project.subtitle}
           </p>
 
           <div
