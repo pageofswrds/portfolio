@@ -30,7 +30,7 @@ export function BlogModal({ post, onClose }: BlogModalProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem',
+        padding: 'clamp(0.5rem, 3vw, 2rem)',
       }}
     >
       {/* Backdrop */}
