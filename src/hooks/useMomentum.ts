@@ -14,10 +14,14 @@ export interface MomentumConfig {
   stopThreshold?: number
 }
 
+interface Sample {
+  x: number
+  y: number
+  t: number
+}
+
 export interface MomentumState {
-  vx: number
-  vy: number
-  timestamp: number
+  samples: Sample[]
   lastX: number
   lastY: number
 }
@@ -45,13 +49,14 @@ const defaults: Required<MomentumConfig> = {
   stopThreshold: 0.5,
 }
 
+// Time window for velocity calculation (ms)
+const VELOCITY_WINDOW = 100
+
 export function createMomentum(config: MomentumConfig = {}): MomentumResult {
   const settings = { ...defaults, ...config }
 
   let state: MomentumState = {
-    vx: 0,
-    vy: 0,
-    timestamp: 0,
+    samples: [],
     lastX: 0,
     lastY: 0,
   }
@@ -69,10 +74,9 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
 
   function start(x: number, y: number) {
     cancel()
+    const now = performance.now()
     state = {
-      vx: 0,
-      vy: 0,
-      timestamp: performance.now(),
+      samples: [{ x, y, t: now }],
       lastX: x,
       lastY: y,
     }
@@ -80,22 +84,53 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
 
   function track(x: number, y: number) {
     const now = performance.now()
-    const elapsed = now - state.timestamp
-    state.timestamp = now
-
-    const dx = x - state.lastX
-    const dy = y - state.lastY
     state.lastX = x
     state.lastY = y
 
-    // Normalize to velocity per second
-    const dt = 1000 / (1 + elapsed)
+    // Add sample and prune old ones outside the velocity window
+    state.samples.push({ x, y, t: now })
+    const cutoff = now - VELOCITY_WINDOW
+    state.samples = state.samples.filter(s => s.t >= cutoff)
 
-    // Moving average: 80% new sample, 20% previous velocity
-    state.vx = 0.8 * dx * dt + 0.2 * state.vx
-    state.vy = 0.8 * dy * dt + 0.2 * state.vy
+    // Compute velocity from samples for return value (not used for momentum, but keeps API)
+    const { vx, vy } = computeVelocity(state.samples)
+    return { vx, vy }
+  }
 
-    return { vx: state.vx, vy: state.vy }
+  function computeVelocity(samples: Sample[]): { vx: number; vy: number } {
+    if (samples.length < 2) {
+      return { vx: 0, vy: 0 }
+    }
+
+    // Use weighted linear regression for smoother velocity estimation
+    // More recent samples get higher weight
+    const now = samples[samples.length - 1].t
+    let sumW = 0, sumWX = 0, sumWY = 0, sumWT = 0
+    let sumWTT = 0, sumWTX = 0, sumWTY = 0
+
+    for (const s of samples) {
+      // Weight decreases linearly with age, minimum 0.1
+      const age = now - s.t
+      const w = Math.max(0.1, 1 - age / VELOCITY_WINDOW)
+      sumW += w
+      sumWX += w * s.x
+      sumWY += w * s.y
+      sumWT += w * s.t
+      sumWTT += w * s.t * s.t
+      sumWTX += w * s.t * s.x
+      sumWTY += w * s.t * s.y
+    }
+
+    const denom = sumW * sumWTT - sumWT * sumWT
+    if (Math.abs(denom) < 0.0001) {
+      return { vx: 0, vy: 0 }
+    }
+
+    // Slope of weighted linear regression = velocity in px/ms
+    const vx = ((sumW * sumWTX - sumWT * sumWX) / denom) * 1000 // Convert to px/s
+    const vy = ((sumW * sumWTY - sumWT * sumWY) / denom) * 1000
+
+    return { vx, vy }
   }
 
   function stop(
@@ -108,19 +143,22 @@ export function createMomentum(config: MomentumConfig = {}): MomentumResult {
 
     const { minVelocity, amplitude, timeConstant, stopThreshold } = settings
 
+    // Compute velocity from recent samples (robust across different event frequencies)
+    const { vx, vy } = computeVelocity(state.samples)
+
     let targetX = currentX
     let targetY = currentY
     let ax = 0
     let ay = 0
 
     // Only apply momentum if velocity exceeds threshold
-    if (Math.abs(state.vx) > minVelocity) {
-      ax = amplitude * state.vx
+    if (Math.abs(vx) > minVelocity) {
+      ax = amplitude * vx
       targetX += ax
     }
 
-    if (Math.abs(state.vy) > minVelocity) {
-      ay = amplitude * state.vy
+    if (Math.abs(vy) > minVelocity) {
+      ay = amplitude * vy
       targetY += ay
     }
 

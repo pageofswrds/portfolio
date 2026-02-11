@@ -18,6 +18,9 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
   // Store current transform for momentum calculations
   const transformRef = useRef({ x: 0, y: 0, k: 1 })
 
+  // Track if scale changed during gesture (to distinguish pan from pinch-zoom)
+  const gestureStartScaleRef = useRef(1)
+
   // Store zoom behavior ref so we can call it from zoom buttons
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
 
@@ -116,6 +119,9 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
           svg.call(zoom.transform, currentTransform)
         }
 
+        // Record starting scale to detect zoom gestures later
+        gestureStartScaleRef.current = transformRef.current.k
+
         // Start tracking velocity
         const { x, y } = transformRef.current
         momentum.start(x, y)
@@ -135,8 +141,12 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
       .on('end', (event) => {
         setIsDragging(false)
 
-        // Only apply momentum for pan gestures (not pinch zoom)
-        if (event.sourceEvent?.type === 'mouseup' || event.sourceEvent?.type === 'touchend') {
+        // Only apply momentum for pan gestures, not pinch-zoom
+        // Check: must be mouseup/touchend AND scale must not have changed
+        const isPanRelease = event.sourceEvent?.type === 'mouseup' || event.sourceEvent?.type === 'touchend'
+        const scaleChanged = Math.abs(transformRef.current.k - gestureStartScaleRef.current) > 0.01
+
+        if (isPanRelease && !scaleChanged) {
           const { x, y, k } = transformRef.current
 
           momentum.stop(x, y, (newX, newY) => {
