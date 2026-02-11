@@ -17,7 +17,7 @@ const DEFAULT_ASPECT_RATIO = 16 / 10
 
 // Starting position for the project stack
 const STACK_START_X = 100
-const STACK_START_Y = 480
+const STACK_START_Y = 520
 
 // Organic horizontal offsets for each card (adds visual interest)
 const HORIZONTAL_OFFSETS = [0, 180, 60, 220, 120, 40, 200, 100, 160]
@@ -80,7 +80,7 @@ function App() {
       <ZoomControls scale={zoomScale} />
       <Canvas onZoomChange={setZoomScale}>
         {/* ASCII flow field - top left, away from main content */}
-        <AsciiFlowField x={-900} y={100} cols={120} rows={50} />
+        <AsciiFlowField x={-1100} y={100} cols={120} rows={50} />
 
         {/* Intro section - upper left area */}
         <g transform="translate(100, 160)">
@@ -240,6 +240,18 @@ function App() {
           </g>
         </g>
 
+        {/* Projects section label */}
+        <text
+          x={STACK_START_X}
+          y={STACK_START_Y - 20}
+          fill="var(--tx-tertiary)"
+          fontSize="14"
+          fontFamily="var(--font-mono)"
+          fontWeight="400"
+        >
+          projects ↓
+        </text>
+
         {/* Project cards in vertical stack with organic horizontal variation */}
         {projects.map((project, index) => {
           const pos = getProjectPosition(index)
@@ -266,7 +278,7 @@ function App() {
           fontFamily="var(--font-mono)"
           fontWeight="400"
         >
-          writing
+          writing →
         </text>
 
         {/* Blog cards - horizontal row with organic vertical variation */}
