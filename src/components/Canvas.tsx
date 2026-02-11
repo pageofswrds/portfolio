@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import * as d3 from 'd3'
+import { createMomentum } from '../hooks/useMomentum'
 
 interface CanvasProps {
   children?: React.ReactNode
@@ -13,6 +14,17 @@ export function Canvas({ children }: CanvasProps) {
   const gRef = useRef<SVGGElement>(null)
   const [isDragging, setIsDragging] = useState(false)
 
+  // Store current transform for momentum calculations
+  const transformRef = useRef({ x: 0, y: 0, k: 1 })
+
+  // Create momentum instance
+  const momentum = useMemo(() => createMomentum({
+    // Tune these for desired feel:
+    minVelocity: 5,      // Min velocity to trigger momentum
+    amplitude: 0.25,     // How far momentum carries (0.1 = subtle, 0.4 = dramatic)
+    timeConstant: 342,   // Decay speed in ms (higher = longer glide)
+  }), [])
+
   useEffect(() => {
     if (!svgRef.current || !gRef.current) return
 
@@ -21,24 +33,53 @@ export function Canvas({ children }: CanvasProps) {
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.3, 2])
-      .on('start', () => setIsDragging(true))
+      .on('start', (event) => {
+        // Cancel any running momentum when user starts dragging
+        momentum.cancel()
+        setIsDragging(true)
+
+        // Start tracking velocity
+        const { x, y } = event.transform
+        momentum.start(x, y)
+      })
       .on('zoom', (event) => {
+        const { x, y, k } = event.transform
+        transformRef.current = { x, y, k }
+
+        // Track velocity during drag
+        momentum.track(x, y)
+
         g.attr('transform', event.transform.toString())
       })
-      .on('end', () => setIsDragging(false))
+      .on('end', (event) => {
+        setIsDragging(false)
+
+        // Only apply momentum for pan gestures (not pinch zoom)
+        if (event.sourceEvent?.type === 'mouseup' || event.sourceEvent?.type === 'touchend') {
+          const { x, y, k } = transformRef.current
+
+          momentum.stop(x, y, (newX, newY) => {
+            // Apply momentum by updating the zoom transform
+            const newTransform = d3.zoomIdentity.translate(newX, newY).scale(k)
+            svg.call(zoom.transform, newTransform)
+          })
+        }
+      })
 
     svg.call(zoom)
 
-    // Position initial view to show the intro section with hints of cards off-screen
-    const { width, height } = svgRef.current.getBoundingClientRect()
-    const initialX = width * 0.35
-    const initialY = height * 0.35
-    svg.call(zoom.transform, d3.zoomIdentity.translate(initialX, initialY).scale(1))
+    // Position initial view so intro section appears near top-left
+    const initialX = 40
+    const initialY = 20
+    const initialTransform = d3.zoomIdentity.translate(initialX, initialY).scale(1)
+    transformRef.current = { x: initialX, y: initialY, k: 1 }
+    svg.call(zoom.transform, initialTransform)
 
     return () => {
+      momentum.cancel()
       svg.on('.zoom', null)
     }
-  }, [])
+  }, [momentum])
 
   return (
     <svg
