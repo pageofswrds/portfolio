@@ -8,6 +8,7 @@ interface ProjectCardProps {
   year: string
   thumbnail?: string
   onClick?: () => void
+  centered?: boolean
 }
 
 const TEXT_AREA_HEIGHT = 96
@@ -20,7 +21,8 @@ export function ProjectCard({
   title,
   year,
   thumbnail,
-  onClick
+  onClick,
+  centered = false,
 }: ProjectCardProps) {
   const [aspectRatio, setAspectRatio] = useState(DEFAULT_ASPECT_RATIO)
 
@@ -38,9 +40,12 @@ export function ProjectCard({
   const width = imageHeight * aspectRatio
   const totalHeight = imageHeight + TEXT_AREA_HEIGHT
 
+  const renderX = centered ? x - width / 2 : x
+  const renderY = centered ? y - totalHeight / 2 : y
+
   return (
     <g
-      transform={`translate(${x}, ${y})`}
+      transform={`translate(${renderX}, ${renderY})`}
       className="cursor-pointer"
       onClick={onClick}
     >
