@@ -75,7 +75,10 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
     if (!svgRef.current || !zoomRef.current) return
     const svg = d3.select(svgRef.current)
     momentum.cancel()
-    const initialTransform = d3.zoomIdentity.translate(40, 20).scale(1)
+    const rect = svgRef.current.getBoundingClientRect()
+    const initialTransform = d3.zoomIdentity
+      .translate(rect.width / 2, rect.height / 2)
+      .scale(1)
     svg.transition().duration(300).call(zoomRef.current.transform, initialTransform)
   }, [momentum])
 
@@ -200,9 +203,10 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
 
     svgElement.addEventListener('wheel', handleWheel, { passive: false })
 
-    // Position initial view so intro section appears near top-left
-    const initialX = 40
-    const initialY = 20
+    // Position initial view so the focal point (canvas origin) sits at viewport center
+    const rect = svgElement.getBoundingClientRect()
+    const initialX = rect.width / 2
+    const initialY = rect.height / 2
     const initialTransform = d3.zoomIdentity.translate(initialX, initialY).scale(1)
     transformRef.current = { x: initialX, y: initialY, k: 1 }
     svg.call(zoom.transform, initialTransform)
