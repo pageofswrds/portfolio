@@ -16,6 +16,7 @@ const mdxModules = import.meta.glob<{
     thumbnail?: string
     order?: number | null
     visible?: boolean
+    position?: { x: number; y: number }
   }
 }>('./*.mdx', { eager: true })
 
@@ -27,6 +28,7 @@ export interface BlogContent {
   date: string
   thumbnail: string
   visible: boolean
+  position?: { x: number; y: number }
   Component: React.ComponentType<MDXContentProps>
 }
 
@@ -44,6 +46,7 @@ export const blogPosts: BlogContent[] = Object.entries(mdxModules)
       date: frontmatter.date || '',
       thumbnail: frontmatter.thumbnail || '',
       visible: frontmatter.visible ?? true,
+      position: frontmatter.position,
       Component: module.default,
     }
   })

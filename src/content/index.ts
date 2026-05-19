@@ -18,6 +18,7 @@ const mdxModules = import.meta.glob<{
     thumbnailSmall?: string
     order?: number
     visible?: boolean
+    position?: { x: number; y: number }
   }
 }>('./work/*.mdx', { eager: true })
 
@@ -33,6 +34,7 @@ export interface ProjectContent {
   thumbnailSmall: string
   order: number
   visible: boolean
+  position?: { x: number; y: number }
   Component: React.ComponentType<MDXContentProps>
 }
 
@@ -54,6 +56,7 @@ export const projects: ProjectContent[] = Object.entries(mdxModules)
       thumbnailSmall: frontmatter.thumbnailSmall || frontmatter.thumbnail || '',
       order: frontmatter.order ?? 999,
       visible: frontmatter.visible ?? true,
+      position: frontmatter.position,
       Component: module.default,
     }
   })
