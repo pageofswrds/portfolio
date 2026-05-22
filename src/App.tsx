@@ -273,7 +273,7 @@ function App() {
                 color: 'var(--tx-primary)',
               }}
             >
-              Hi, I'm an Interaction Designer from Seattle currently building Kairōs—a community tool designed for studying the stars. Kairōs is my practical path towards proving out my thesis: that graph architecture is where we'll see the next big steps forward in AI.
+              Hi, I'm an Interaction Designer from Seattle currently building Kairōs—a community tool designed for studying the stars. Kairōs is a practical path towards proving out my thesis: that graph architecture in the context window is where we'll see the next big steps forward in AI.
             </div>
           </foreignObject>
         )}
