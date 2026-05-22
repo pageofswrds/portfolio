@@ -118,4 +118,30 @@ describe('placeAncestry', () => {
     expect(typeof a[0].x).toBe('number')
     expect(typeof b[0].x).toBe('number')
   })
+
+  it('extends downward when direction is "down"', () => {
+    const downConfig = { ...config, direction: 'down' as const }
+    const cards: Placeable[] = [
+      { slug: 'a', date: '2024-01-01' },
+      { slug: 'b', date: '2024-02-01' },
+    ]
+    const result = placeAncestry(cards, downConfig)
+    for (const card of result) {
+      expect(card.y).toBeGreaterThan(downConfig.focalY)
+    }
+  })
+
+  it('still places newest closest to focal when direction is "down"', () => {
+    const downConfig = { ...config, direction: 'down' as const }
+    const cards: Placeable[] = [
+      { slug: 'old', date: '2022-01-01' },
+      { slug: 'newest', date: '2025-01-01' },
+    ]
+    const result = placeAncestry(cards, downConfig)
+    const newest = result.find((r) => r.slug === 'newest')!
+    const old = result.find((r) => r.slug === 'old')!
+    expect(Math.abs(newest.y - downConfig.focalY)).toBeLessThan(
+      Math.abs(old.y - downConfig.focalY),
+    )
+  })
 })

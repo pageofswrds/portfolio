@@ -11,6 +11,7 @@ export interface FunnelConfig {
   verticalSpacing: number
   maxSpread: number
   jitterRange: number
+  direction?: 'up' | 'down'
 }
 
 export const DEFAULT_FUNNEL_CONFIG: FunnelConfig = {
@@ -20,6 +21,7 @@ export const DEFAULT_FUNNEL_CONFIG: FunnelConfig = {
   verticalSpacing: 280,
   maxSpread: 480,
   jitterRange: 60,
+  direction: 'up',
 }
 
 export function slugHash(slug: string): number {
@@ -52,7 +54,8 @@ export function placeAncestry(
 
     const distance = N - 1 - i
 
-    const baseY = config.focalY - config.topMargin - distance * config.verticalSpacing
+    const sign = config.direction === 'down' ? 1 : -1
+    const baseY = config.focalY + sign * (config.topMargin + distance * config.verticalSpacing)
 
     const spreadRatio = N <= 1 ? 0 : distance / (N - 1)
     const spreadAmount = config.maxSpread * easeOutQuad(spreadRatio)
