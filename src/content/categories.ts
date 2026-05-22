@@ -32,13 +32,11 @@ export const ROOTS: Record<RootId, RootDefinition> = {
       // reading.supply essays
       'meaning-lives-in-between-the-gaps-of-language-pt1',
       'diverse-forms-of-intelligence',
-      'brahes-problem',
       'entropy-duality',
       'the-vessel-shapes-the-decision',
       'minimizing-entropy-in-intelligent-systems-pt2',
       'the-groove-that-passes-for-rigor',
       'the-cognitive-lightcone',
-      'composting',
     ],
   },
   'past-work': {

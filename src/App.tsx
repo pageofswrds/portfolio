@@ -108,7 +108,7 @@ function App() {
   const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
-  const [activeRoot, setActiveRoot] = useState<RootId>('core-details')
+  const [activeRoot, setActiveRoot] = useState<RootId>('product')
 
   const activeChain = (() => {
     if (activeRoot === 'core-details') return null
