@@ -1,4 +1,4 @@
-export const ROOT_IDS = ['core-details', 'product', 'research', 'past-work'] as const
+export const ROOT_IDS = ['about', 'product', 'research', 'past-work'] as const
 
 export type RootId = (typeof ROOT_IDS)[number]
 
@@ -9,9 +9,9 @@ export interface RootDefinition {
 }
 
 export const ROOTS: Record<RootId, RootDefinition> = {
-  'core-details': {
-    id: 'core-details',
-    label: 'Core details',
+  about: {
+    id: 'about',
+    label: 'About',
     members: [],
   },
   product: {

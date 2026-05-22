@@ -31,7 +31,7 @@ const TAB_GAP = 12
 const TAB_FONT_SIZE = 14
 
 const TAB_WIDTHS: Record<RootId, number> = {
-  'core-details': 150,
+  about: 90,
   'past-work': 120,
   product: 100,
   research: 110,
@@ -111,7 +111,7 @@ function App() {
   const [activeRoot, setActiveRoot] = useState<RootId>('product')
 
   const activeChain = (() => {
-    if (activeRoot === 'core-details') return null
+    if (activeRoot === 'about') return null
     const root = ROOTS[activeRoot]
     const artifacts = root.members
       .map(lookupArtifact)
@@ -221,7 +221,7 @@ function App() {
         </g>
 
         {/* Core details panel — external links in a horizontal row below identity */}
-        {activeRoot === 'core-details' && (
+        {activeRoot === 'about' && (
           <g transform={`translate(${LINK_ROW_OFFSET_X}, ${LINK_PANEL_Y})`}>
             {(() => {
               let xCursor = 0
