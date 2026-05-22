@@ -17,7 +17,7 @@ export const ROOTS: Record<RootId, RootDefinition> = {
   product: {
     id: 'product',
     label: 'Product',
-    members: [],
+    members: ['kairos'],
   },
   research: {
     id: 'research',
