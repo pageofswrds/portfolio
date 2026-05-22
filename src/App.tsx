@@ -37,8 +37,13 @@ const TAB_WIDTHS: Record<RootId, number> = {
   research: 110,
 }
 
-// Link panel sits just below the identity card when Core details is active.
-const LINK_PANEL_Y = 120
+// About panel: body copy above, link row below.
+const ABOUT_BODY_Y = 110
+const ABOUT_BODY_WIDTH = 560
+const ABOUT_BODY_HEIGHT = 180
+const ABOUT_BODY_FONT_SIZE = 16
+
+const LINK_PANEL_Y = ABOUT_BODY_Y + ABOUT_BODY_HEIGHT + 24
 const LINK_HEIGHT = 40
 const LINK_RX = 8
 const LINK_GAP = 12
@@ -220,7 +225,27 @@ function App() {
           </g>
         </g>
 
-        {/* Core details panel — external links in a horizontal row below identity */}
+        {/* About panel — body copy above the external links row */}
+        {activeRoot === 'about' && (
+          <foreignObject
+            x={LINK_ROW_OFFSET_X}
+            y={ABOUT_BODY_Y}
+            width={ABOUT_BODY_WIDTH}
+            height={ABOUT_BODY_HEIGHT}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: `${ABOUT_BODY_FONT_SIZE}px`,
+                lineHeight: 1.6,
+                color: 'var(--tx-primary)',
+              }}
+            >
+              Hi, I'm an Interaction Designer from Seattle currently building Kairōs—a community tool designed for studying the stars. Kairōs is my practical path towards proving out my thesis: that graph architecture is where we'll see the next big steps forward in AI.
+            </div>
+          </foreignObject>
+        )}
+
         {activeRoot === 'about' && (
           <g transform={`translate(${LINK_ROW_OFFSET_X}, ${LINK_PANEL_Y})`}>
             {(() => {
