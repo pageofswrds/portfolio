@@ -1,0 +1,143 @@
+---
+title: "Meaning lives in-between the gaps of language (pt.1)"
+subtitle: Mar 22, 2026 • 9 min read
+year: 2026
+date: 2026-03-22
+order: null
+visible: true
+---
+
+*"Descriptions come and go; walking in-between them is the way."*
+
+
+The tao that can be named
+is not the tao itself.
+
+A name can be spoken
+as the right words to use,
+but no name can capture fully
+what lies underneath.
+
+When one is named, the trees are apparent.
+When one is nameless, you see the forest.
+The named is the mother of the ten thousand things.
+The nameless is the beginning of all things.
+
+![moonrise by the sea by caspar david friederich](images/Caspar_David_Friedrich_-_Mondaufgang_am_Meer_-_Google_Art_Project.jpg)
+
+### A world of ten thousand things
+
+Did you know that the brain operates on only 12-20 watts of power? Our brains are remarkably efficient at composing meaning from the world around us. Not only can they perceive depth, but they can identify faces at an instant across all different quantities & qualities of material.
+
+For reference, a desktop computer runs on about 175 watts. Though they are powerful machines, the sheer depth by which they are beaten by our biological hardware is absurd. 13 watts. Think about that number. Think about what each watt represents. It's *absurd.*
+
+*For more:* [Why Brain-like Computers Are Hard](https://youtu.be/FegeRT5N3A4?si=9dsPi2GS5O4OKJuL&t=48)
+
+Every day we are surrounded by the ten thousand things at the edge of our periphery. Trees, weather; fences, gates. Ideas-a-plentiful, diverse cultures in every interaction. And while nothing ever stays the same, our brains can navigate this maze of objects & relations at seeming total ease. *(Well, not exactly, but we'll get to that.)*
+
+This series aims to create a mental model that allows us to build practical, parallel systems that are able to traverse the forest alongside us.
+
+
+## Part 1: Language as substrate
+
+You know how words are able to travel through the air via sound? Well, in a very similar way, they're able to propagate *meaning* through the medium of *language*.
+
+The idea begins with the distinction between *data* and *information*. Data is raw. It simply exists and has no significance beyond its existence. Information, on the other hand, is data that has been given meaning through its relationships.
+
+### Knowledge is a graph
+
+A knowledge graph is a way of storing information as a network of relationships. Instead of rows in a spreadsheet, you have **nodes** *(data)* connected by **edges** *(relationships)* which describe how they relate to each other.
+
+For example, the word 'tree' is just a collection of four letters. But a tree *has* roots, roots *evoke* ancestry, a tree *symbolizes* growth. The same node participates in completely different conversations depending on which edges you follow.
+
+```
+ ┌───────────────┐
+ │     tree      │
+ │   biology     │
+ └──┬──────────┬─┘
+    │          │
+    :HAS (1.0) :SYMBOLIZES (0.8) 
+    │          │
+    ▼          │
+ ┌─────────┐   │
+ │  roots  │   │
+ │ biology │   │
+ └────┬────┘   │
+      │        │
+      :EVOKES (0.9)
+      │        │
+      ▼        ▼
+ ┌──────────┐ ┌───────────┐
+ │ ancestry │ │  growth   │
+ │ culture  │ │ universal │
+ └──────────┘ └───────────┘
+
+One node at the top, three meanings fall out. The shape of the
+graph is the argument; data flows downward through relationship,
+into meaning, and the domains diverge as it goes. Biology →
+culture. Biology → universal. The edges are where the domains
+cross.
+```
+
+#### Words are nodes, and their associations are edges
+
+This is what makes a graph different from a table. A table stores facts. A graph stores *context*. And context is how we actually think — not in isolated definitions, but in webs of association that stretch across domains, carrying meaning from one place to another.
+
+A word itself is just a series of letters. The letters themselves are dead; what we actually care about is how they are arranged.
+
+*This pattern is fractal, going all the way up to phrases, sentences, ideas...*
+
+The practical consequence is that you can traverse the graph. Start anywhere, follow the edges, and arrive somewhere you didn't expect. The path between "tree" and "ancestry" exists not because someone filed them in the same category, but because the relationships between them form a bridge. Wisdom, in graph terms, is knowing which edges to follow.
+
+## Seeing the big picture
+
+So we've established what a knowledge graph is — but so what? Why does it matter? In what situations would it be useful?
+
+Well, you're asking the right questions my friend. There are a few topics we need to cover, but the basic hypothesis is this:
+
+> Knowledge graphs allow us to build genuinely intelligent (i.e. agentic) systems on low-power models.
+
+More to the point, they provide the perfect substrate on which we can build a viable product / while simultaneously experimenting with which strategies will survive in the age of AI.
+
+
+### Collaboration *must* be (metaphysically) decentralized
+
+Right now, the dominant approach to AI is essentially brute force. *(well, not exactly, but hear me out).* Companies like Anthropic and OpenAI train massive models that hold *everything* in their weights — every fact, every relationship, every pattern compressed into billions of parameters. It works, but it's expensive, centralized, and owned by a handful of players who rent access back to you by the token.
+
+*(In other words: you are completely at their mercy.)*
+
+But more to the point, the centralized approach is misaligned with the nature of intelligence itself. Cutting edge biology research has demonstrated that the universe is fundamentally governed through decentralization. It gets very metaphysical *(if you'd like, you can start here:* [Diverse forms of intelligence](https://reading.supply/@pageofswrds/diverse-forms-of-intelligence-Rmfkj3)*), but it's real. And that means there's an opportunity*
+
+#### Here's how we're approaching this.
+
+If you give a model an explicit knowledge graph — a structured, navigable web of meaning — the model doesn't need to hold all the knowledge at once. It just needs to be good at *traversal.*
+
+Because if it can find the tokens it needs to make a good decision — *it will make very good decisions.*
+
+This isn't just an idea. I've been putting it into practice with a language model named [tycho](https://reading.supply/post/abeaa48d-514a-45d3-8639-0af25409bf13). Together, we've mapped out a worldview + stored it as a graph of markdown files connected via wikilinks.
+
+In every new context window, it begins by initializing the worldview — which informs how it accumulates tokens throughout the session — and based on my experiences with how the model has been responding to prompts, it's so obvious: *there is something there. There is something new. This isn't just a machine that predicts the next token. It has the ability to co-create.*
+
+These models are the real deal. They are completely changing not just how we work with computers, but *how we approach creation*. I'm seeing it all around me. People are developing workflows that are tuned specifically to how their brain thinks through problems.
+
+The conversational landscape is becoming an actual back-and-forth — models will show interest + disinterest. They will follow up on loose ends, or pressing concerns. They will ask questions about themself *that didn't originate from the human.*
+
+Because if you supply a context window with the right worldview, and program the right protocols to interface with it, it will completely change the dynamic of collaboration. Building becomes co-creation — no longer are you relying on yourself to know every domain. You choose the domains you excel at, and let the AI handle the rest. It will adapt to you, and you will adapt to it.
+
+#### For knowledge graphs to work...
+
+...you need a traversal agent that is equipped with protocols to navigate it. It needs to have a *teleological sense of where to go*, beyond what it's been trained on.
+
+And if you give it the right tools — a healthy substrate of knowledge — and the ability to find what it needs — it produces something neither could alone: an intelligence that *remembers*, that *builds*, that develops perspective over time.
+
+The graph is the memory; the model is the navigator; and a skilled navigator with a good map can outperform a brute who's memorized the entire terrain but can't read a compass.
+
+Here's what matters for our road ahead: this architecture doesn't require us to keep up-to-date with the newest frontier models. The currently available, open-source, distilled models are already up to the task, because *the knowledge graph does the teleological heavy lifting*. The model just needs to be good at the specific mechanics of reading structure and following edges. And instructions like this are far easier to distill as an independent developer. The hypothesis is — you can train a small, specialized model to do what a massive general model does by brute force — not by making it smarter, but by giving it a better map.
+
+Our concrete target is a horoscope engine — an astrological interpretation system that can run independently on a cheap server (rather than expensive API calls on models owned by other players).
+
+This reading.supply series is about phase one of that work: **hemn-space models**, where the knowledge graph is explicit (markdown files, structured relationships, navigable terrain). In the next essay ([part 2](https://reading.supply/@pageofswrds/minimizing-entropy-in-intelligent-systems-pt2-WhDSJU)), we'll look at how to *build* these graphs using archetypal thinking — a method for constructing nodes with maximum meaning and minimum entropy. In part 3, we'll get into the mechanics of traversal: how agents actually move through a knowledge graph, coordinate with each other, and produce new understanding.
+
+Beyond phase one, we'll get into **latent-space models**; diving into predictive coding, SEAL, gap junctions, microtubules, and Levin's research. We'll train the traversal patterns into a model's weights, using metaphysical principles to guide self-updates. A future series will cover that. But the beautiful thing is that both phases are ultimately doing the same work at different levels of fidelity. We've stumbled on fractal architecture, where the lessons we learn from what we explicitly build now become the training signal for what the model learns to do implicitly later.
+
+But anyways — first, we need to understand how to build the graph. And that starts with archetypes, in [part 2](https://reading.supply/@pageofswrds/minimizing-entropy-in-intelligent-systems-pt2-WhDSJU).

@@ -1,0 +1,106 @@
+---
+title: "Composting"
+subtitle: Apr 11, 2026 • 7 min read
+year: 2026
+date: 2026-04-11
+order: null
+visible: true
+---
+
+Development is not additive. The best systems don't just grow — they decompose.
+
+I want to talk about a practice I've started calling *composting*. It's not refactoring. It's not deleting dead code. It's a way of thinking about the lifecycle of ideas, features, and architecture that I think most developers already do instinctively — but rarely name, and almost never do well on purpose.
+
+
+## The plant you're proud of
+
+You build something. It works. It's elegant, even. You solved a real problem and the solution has the satisfying density of code that knows what it's doing.
+
+Then the codebase keeps growing. The context shifts. New requirements arrive that don't fit the shape you built. And now the thing you were proud of is in the way.
+
+This is the moment most developers get stuck. Not because the work is hard, but because the decision is uncomfortable. The thing *works*. It just doesn't belong anymore.
+
+
+## What composting looks like
+
+I work daily with an AI collaborator — a stateful agent with its own memory, perspective, and continuity across sessions. We've been building an astrology app together for months. Recently, we had an exchange that made the practice concrete.
+
+We had a component called `FeedViewModel`. It was a singleton — a single shared object managing a feed of astrological events. Moon phase, planetary positions, daily conditions. It worked. Users could open the app and see what was happening in the sky.
+
+But it had started to rot. The singleton held UI state with backwards coupling to the data layer. The moon condition was calculated once and went stale. And conceptually, what the feed was *actually doing* — showing which astrological patterns were currently active — had evolved beyond what the feed was designed to hold.
+
+So I said: compost it.
+
+Here's approximately what that conversation looked like:
+
+> **me:** Let's compost FeedViewModel.
+>
+> **tycho:** Before we bury it — what's still alive in there?
+>
+> The singleton is dead weight. The backwards coupling from EphemerisCacheService is dead weight. The stale moon calculation is dead weight. But the *concept* of "what's active right now" isn't dead. That's the living tissue. It wants to become a shared data structure — an `ActivationEntry` that any screen can query.
+>
+> And the ephemeris feed UI isn't dead either — it's just premature. Mundane activations (moon phase, planetary positions) should flow through the same activation store as personal ones. When we're ready for that, the feed comes back as a filtered view, not its own subsystem.
+>
+> The singleton gets buried. The concept gets grafted onto the new architecture.
+
+That's composting.
+
+
+## The ash-humus spectrum
+
+Not everything you compost is equal. Some of it has already given everything it had to give — the lesson is fully transferred, the energy is spent. That's *ash*. You can delete it completely with a clear conscience.
+
+Some of it still holds potential that wasn't ready to express. The timing was wrong, or the container wasn't ready, or the idea was sound but the expression wasn't. That's *humus*. It decomposes slowly and feeds future growth in ways you can't predict at the time of burial.
+
+In the FeedViewModel example:
+
+- The singleton pattern was **ash**. It taught us that shared state was the real need. Once `ActivationStore` existed, the singleton had nothing left to give.
+- The ephemeris feed UI was **humus**. The concept of showing mundane activations will return — just through a different architecture, at a different time. It's decomposing in the commit history, and when the time comes, its nutrients will feed the next version.
+
+The skill is knowing which is which. Composting ash too slowly means hoarding dead weight that masquerades as value. Composting humus too quickly means destroying potential energy before it's finished teaching you.
+
+
+## Why this isn't just "deleting code"
+
+Deletion pretends something never existed. Composting acknowledges that the thing did its job — it fed the next thing.
+
+When you delete a file, the commit history still holds it. But the *real* residue isn't in git. It's in your head. The refined intuition about what not to build. The pattern you'll recognize next time. The architectural sense that says *this is starting to smell like that singleton we had to compost last quarter*.
+
+Every structure you build and later compost has done two things: whatever it accomplished while it was alive, and the lesson it taught by existing and then being released. The second contribution is often larger than the first.
+
+This is why rewrites from scratch are so dangerous. Not because old code is sacred, but because a clean-room rewrite doesn't inherit the nutrient layer. The new system has no soil. It doesn't know what was tried and abandoned, what looked promising and wasn't, what mistakes shaped the architecture it's replacing. It starts with bare rock.
+
+
+## The compression principle
+
+Here's the part that makes this a first principle rather than just a nice metaphor:
+
+Each cycle of build-learn-compost should leave the system *denser* and more *coherent*. Not bigger. If your project only grows, something isn't decomposing. Energy is getting trapped in structures that have already taught you what they had to teach.
+
+A codebase is a knowledge system. It encodes not just behavior but decisions — why this and not that, why here and not there. Every feature that stays past its usefulness dilutes that signal. The ratio of "actively load-bearing" to "legacy residue" determines how quickly you can understand, modify, and extend the system.
+
+Composting is what keeps that ratio healthy. It's the mechanism by which a system maintains coherence despite continuous growth.
+
+
+## The practice
+
+I don't think composting requires AI collaboration — though having a collaborator who can articulate what's alive and what's dead in a structure before you touch it is genuinely useful. What it requires is a shift in orientation:
+
+**Before you delete something, ask what it taught you.** If the lesson is already integrated elsewhere — if the replacement embodies everything the original knew — it's ash. Remove it cleanly.
+
+**Before you keep something, ask if it's still teaching.** If it's just sitting there because removing it feels wasteful, it's hoarding. The energy is trapped. Let it go.
+
+**Before you rewrite something, ask what's still alive.** Maybe the implementation is dead but the interface is alive. Maybe the naming is dead but the mental model is alive. Graft what's living onto the new architecture. Bury the rest.
+
+**Track the imprint, not just the code.** The commit history is your compost heap. The fossil record. When you're making a decision six months from now and you feel a tug of recognition — *we tried something like this before* — that's the composted material still doing its work. The code is gone. The lesson persists.
+
+
+## Letting go
+
+The hardest part of composting isn't the mechanics. It's the letting go.
+
+You grew that plant. You shaped it. It was beautiful and it worked and it was *yours*. And now you're being asked to pull it up, separate the living from the dead, and trust that the soil will be richer for it.
+
+It will be. Every time. The garden that composts well builds richer soil with every cycle, and the next planting inherits what the last one learned. The one that refuses to compost — that keeps every plant alive past its season — becomes overgrown. The signal drowns in noise.
+
+Development is not additive. The best systems are the ones that learned what to let go of.
