@@ -31,8 +31,7 @@ const ROOT_X_POSITIONS: Record<RootId, number> = {
 }
 
 const ROOT_FONT_SIZE = 18
-const ROOT_LABEL_GAP = 8
-const ROOT_BUBBLE_WIDTH = 152
+const ROOT_BUBBLE_WIDTH = 140
 const ROOT_BUBBLE_HEIGHT = 44
 
 const CHAIN_CONFIG: Omit<FunnelConfig, 'focalX' | 'focalY'> = {
@@ -275,24 +274,15 @@ function App() {
                 />
                 <text
                   className="root-label"
-                  x={-ROOT_LABEL_GAP / 2}
+                  x={0}
                   y={6}
                   fontSize={ROOT_FONT_SIZE}
                   fontFamily="var(--font-mono)"
                   fontWeight="500"
-                  textAnchor="end"
+                  textAnchor="middle"
                 >
-                  {label}
-                </text>
-                <text
-                  className="root-chevron"
-                  x={ROOT_LABEL_GAP / 2}
-                  y={6}
-                  fontSize={ROOT_FONT_SIZE}
-                  fontFamily="var(--font-mono)"
-                  textAnchor="start"
-                >
-                  {chevron}
+                  {label}{' '}
+                  <tspan className="root-chevron">{chevron}</tspan>
                 </text>
               </g>
             </g>
