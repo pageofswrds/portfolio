@@ -1,4 +1,4 @@
-export const ROOT_IDS = ['core-details', 'past-work', 'product', 'research'] as const
+export const ROOT_IDS = ['core-details', 'product', 'research', 'past-work'] as const
 
 export type RootId = (typeof ROOT_IDS)[number]
 
@@ -14,6 +14,22 @@ export const ROOTS: Record<RootId, RootDefinition> = {
     label: 'Core details',
     members: [],
   },
+  product: {
+    id: 'product',
+    label: 'Product',
+    members: ['calculated-risk', 'rapid-refactoring'],
+  },
+  research: {
+    id: 'research',
+    label: 'Research',
+    members: [
+      'position-in-time',
+      'a-plan-for-deep-work',
+      'constraints-in-xr',
+      'is-xr-in-search-of-a-problem',
+      'embodied-interfaces',
+    ],
+  },
   'past-work': {
     id: 'past-work',
     label: 'Past work',
@@ -25,28 +41,9 @@ export const ROOTS: Record<RootId, RootDefinition> = {
       'terrariumxr',
       'layer',
       'layerpitch',
-    ],
-  },
-  product: {
-    id: 'product',
-    label: 'Product',
-    members: [
       'devlog01',
       'devlog02',
       'capstone-planning',
-      'calculated-risk',
-      'rapid-refactoring',
-    ],
-  },
-  research: {
-    id: 'research',
-    label: 'Research',
-    members: [
-      'position-in-time',
-      'a-plan-for-deep-work',
-      'constraints-in-xr',
-      'is-xr-in-search-of-a-problem',
-      'embodied-interfaces',
     ],
   },
 }
