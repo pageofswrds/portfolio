@@ -6,10 +6,11 @@ import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
 import { BlogModal } from './components/BlogModal'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
-import { placeAncestry, DEFAULT_FUNNEL_CONFIG, type Placeable } from './layout/funnel'
+import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
+import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
 
-const FOCAL_X = DEFAULT_FUNNEL_CONFIG.focalX
-const FOCAL_Y = DEFAULT_FUNNEL_CONFIG.focalY
+const FOCAL_X = 0
+const FOCAL_Y = 0
 const IMAGE_HEIGHT = 260
 
 const IDENTITY_ANCHOR_SIZE = 180
@@ -21,31 +22,75 @@ const IDENTITY_BUTTON_GAP = 12
 
 const PRESENT_OFFSET_Y = 320
 
-type AncestryItem =
+const ROOT_Y = -240
+const ROOT_X_SPACING = 500
+const ROOT_X_POSITIONS: Record<RootId, number> = {
+  'past-work': -ROOT_X_SPACING,
+  product: 0,
+  research: ROOT_X_SPACING,
+}
+
+const ROOT_FONT_SIZE = 18
+const ROOT_LABEL_GAP = 8
+
+const CHAIN_CONFIG: Omit<FunnelConfig, 'focalX' | 'focalY'> = {
+  topMargin: 80,
+  verticalSpacing: 380,
+  maxSpread: 24,
+  jitterRange: 24,
+}
+
+const projectBySlug = new Map(projects.map((p) => [p.slug, p]))
+const blogBySlug = new Map(blogPosts.map((b) => [b.slug, b]))
+
+type Artifact =
   | { kind: 'project'; data: ProjectContent }
   | { kind: 'blog'; data: BlogContent }
+
+function lookupArtifact(slug: string): Artifact | null {
+  const proj = projectBySlug.get(slug)
+  if (proj) return { kind: 'project', data: proj }
+  const blog = blogBySlug.get(slug)
+  if (blog) return { kind: 'blog', data: blog }
+  return null
+}
 
 function App() {
   const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
+  const [activeRoot, setActiveRoot] = useState<RootId | null>(null)
 
-  const kairos = projects.find((p) => p.slug === 'kairos') ?? null
-  const ancestryProjects = projects.filter((p) => p.slug !== 'kairos')
+  const kairos = projectBySlug.get('kairos') ?? null
 
-  const ancestryItems: AncestryItem[] = [
-    ...ancestryProjects.map((p): AncestryItem => ({ kind: 'project', data: p })),
-    ...blogPosts.map((b): AncestryItem => ({ kind: 'blog', data: b })),
-  ]
+  const activeChain = (() => {
+    if (!activeRoot) return null
+    const root = ROOTS[activeRoot]
+    const rootX = ROOT_X_POSITIONS[activeRoot]
+    const artifacts = root.members
+      .map(lookupArtifact)
+      .filter((a): a is Artifact => a !== null)
 
-  const placeable: Placeable[] = ancestryItems.map((item) => ({
-    slug: item.data.slug,
-    date: item.data.date,
-    position: item.data.position,
-  }))
+    const placeable: Placeable[] = artifacts.map((a) => ({
+      slug: a.data.slug,
+      date: a.data.date,
+      position: a.data.position,
+    }))
 
-  const placements = placeAncestry(placeable, DEFAULT_FUNNEL_CONFIG)
-  const placementBySlug = new Map(placements.map((p) => [p.slug, p]))
+    const placements = placeAncestry(placeable, {
+      ...CHAIN_CONFIG,
+      focalX: rootX,
+      focalY: ROOT_Y,
+    })
+
+    const placementBySlug = new Map(placements.map((p) => [p.slug, p]))
+
+    return { artifacts, placementBySlug }
+  })()
+
+  const handleRootClick = (id: RootId) => {
+    setActiveRoot((current) => (current === id ? null : id))
+  }
 
   return (
     <>
@@ -54,7 +99,6 @@ function App() {
       <Canvas onZoomChange={setZoomScale}>
         {/* Identity zone — centered on focal point */}
         <g transform={`translate(${FOCAL_X}, ${FOCAL_Y})`}>
-          {/* Visual anchor placeholder (left of name) */}
           <rect
             x={-(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200)}
             y={-IDENTITY_ANCHOR_SIZE / 2}
@@ -204,41 +248,91 @@ function App() {
           </g>
         </g>
 
-        {/* Ancestry — projects + writing, mingled, chronological */}
-        {ancestryItems.map((item) => {
-          const placement = placementBySlug.get(item.data.slug)
-          if (!placement) return null
-
-          const onClick = () => {
-            if (item.kind === 'project') {
-              setSelectedProject(item.data)
-            } else {
-              setSelectedBlogPost(item.data)
-            }
-          }
-
-          const yearLabel =
-            item.kind === 'project'
-              ? item.data.year
-              : (item.data.subtitle.split('•')[0]?.trim() ?? '')
-
-          const thumb =
-            item.kind === 'project' ? item.data.thumbnailSmall : item.data.thumbnail
+        {/* Three root nodes — row above identity */}
+        {ROOT_IDS.map((id) => {
+          const isActive = activeRoot === id
+          const rootX = ROOT_X_POSITIONS[id]
+          const label = ROOTS[id].label
+          const chevron = isActive ? '▴' : '▾'
 
           return (
-            <ProjectCard
-              key={`${item.kind}-${item.data.slug}`}
-              x={placement.x}
-              y={placement.y}
-              imageHeight={IMAGE_HEIGHT}
-              title={item.data.title}
-              year={yearLabel}
-              thumbnail={thumb}
-              onClick={onClick}
-              centered
-            />
+            <g
+              key={id}
+              transform={`translate(${rootX}, ${ROOT_Y})`}
+              className="cursor-pointer"
+              onClick={() => handleRootClick(id)}
+            >
+              {/* Generous invisible click target */}
+              <rect
+                x={-80}
+                y={-20}
+                width={160}
+                height={40}
+                fill="transparent"
+              />
+              <text
+                x={-ROOT_LABEL_GAP / 2}
+                y={6}
+                fill="var(--tx-primary)"
+                fontSize={ROOT_FONT_SIZE}
+                fontFamily="var(--font-mono)"
+                fontWeight="500"
+                textAnchor="end"
+              >
+                {label}
+              </text>
+              <text
+                x={ROOT_LABEL_GAP / 2}
+                y={6}
+                fill="var(--tx-tertiary)"
+                fontSize={ROOT_FONT_SIZE}
+                fontFamily="var(--font-mono)"
+                textAnchor="start"
+              >
+                {chevron}
+              </text>
+            </g>
           )
         })}
+
+        {/* Active chain — cards above the active root */}
+        {activeChain &&
+          activeChain.artifacts.map((artifact) => {
+            const placement = activeChain.placementBySlug.get(artifact.data.slug)
+            if (!placement) return null
+
+            const onClick = () => {
+              if (artifact.kind === 'project') {
+                setSelectedProject(artifact.data)
+              } else {
+                setSelectedBlogPost(artifact.data)
+              }
+            }
+
+            const yearLabel =
+              artifact.kind === 'project'
+                ? artifact.data.year
+                : (artifact.data.subtitle.split('•')[0]?.trim() ?? '')
+
+            const thumb =
+              artifact.kind === 'project'
+                ? artifact.data.thumbnailSmall
+                : artifact.data.thumbnail
+
+            return (
+              <ProjectCard
+                key={`${artifact.kind}-${artifact.data.slug}`}
+                x={placement.x}
+                y={placement.y}
+                imageHeight={IMAGE_HEIGHT}
+                title={artifact.data.title}
+                year={yearLabel}
+                thumbnail={thumb}
+                onClick={onClick}
+                centered
+              />
+            )
+          })}
 
         {/* Present — Kairos card below focal point */}
         {kairos && (
