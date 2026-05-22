@@ -225,6 +225,59 @@ html, body {
   cursor: url('/cursors/cursor-grip.svg') 12 12, grabbing;
 }
 
+/* ============================================
+   ROOT NODE BUBBLES
+   ============================================ */
+
+.root-node {
+  cursor: url('/cursors/cursor-point.svg') 4 4, pointer;
+}
+
+.root-node .root-bg {
+  fill: var(--bg-card);
+  stroke: var(--bd-primary);
+  stroke-width: 1;
+}
+
+.root-node .root-label {
+  fill: var(--tx-primary);
+}
+
+.root-node .root-chevron {
+  fill: var(--tx-tertiary);
+}
+
+.root-node:hover .root-bg {
+  fill: var(--bg-card-hover);
+  stroke: var(--bd-hover);
+  stroke-width: 1.5;
+}
+
+.root-node.active .root-bg {
+  fill: var(--bg-button);
+  stroke: var(--bg-button);
+}
+
+.root-node.active .root-label,
+.root-node.active .root-chevron {
+  fill: var(--tx-button);
+}
+
+/* Bouncy scale on the inner content group — the "oomph" */
+.root-content {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.root-node:hover .root-content {
+  transform: scale(1.06);
+}
+
+.root-node:active .root-content {
+  transform: scale(0.94);
+}
+
 /* Utility classes */
 .elevation-1 {
   box-shadow: 0px 0px 4px -2px rgba(24, 39, 75, 0.08), 0px 0px 4px -2px rgba(24, 39, 75, 0.12);

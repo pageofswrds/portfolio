@@ -32,6 +32,8 @@ const ROOT_X_POSITIONS: Record<RootId, number> = {
 
 const ROOT_FONT_SIZE = 18
 const ROOT_LABEL_GAP = 8
+const ROOT_BUBBLE_WIDTH = 152
+const ROOT_BUBBLE_HEIGHT = 44
 
 const CHAIN_CONFIG: Omit<FunnelConfig, 'focalX' | 'focalY'> = {
   topMargin: 80,
@@ -259,38 +261,40 @@ function App() {
             <g
               key={id}
               transform={`translate(${rootX}, ${ROOT_Y})`}
-              className="cursor-pointer"
+              className={`root-node ${isActive ? 'active' : ''}`}
               onClick={() => handleRootClick(id)}
             >
-              {/* Generous invisible click target */}
-              <rect
-                x={-80}
-                y={-20}
-                width={160}
-                height={40}
-                fill="transparent"
-              />
-              <text
-                x={-ROOT_LABEL_GAP / 2}
-                y={6}
-                fill="var(--tx-primary)"
-                fontSize={ROOT_FONT_SIZE}
-                fontFamily="var(--font-mono)"
-                fontWeight="500"
-                textAnchor="end"
-              >
-                {label}
-              </text>
-              <text
-                x={ROOT_LABEL_GAP / 2}
-                y={6}
-                fill="var(--tx-tertiary)"
-                fontSize={ROOT_FONT_SIZE}
-                fontFamily="var(--font-mono)"
-                textAnchor="start"
-              >
-                {chevron}
-              </text>
+              <g className="root-content">
+                <rect
+                  className="root-bg"
+                  x={-ROOT_BUBBLE_WIDTH / 2}
+                  y={-ROOT_BUBBLE_HEIGHT / 2}
+                  width={ROOT_BUBBLE_WIDTH}
+                  height={ROOT_BUBBLE_HEIGHT}
+                  rx={ROOT_BUBBLE_HEIGHT / 2}
+                />
+                <text
+                  className="root-label"
+                  x={-ROOT_LABEL_GAP / 2}
+                  y={6}
+                  fontSize={ROOT_FONT_SIZE}
+                  fontFamily="var(--font-mono)"
+                  fontWeight="500"
+                  textAnchor="end"
+                >
+                  {label}
+                </text>
+                <text
+                  className="root-chevron"
+                  x={ROOT_LABEL_GAP / 2}
+                  y={6}
+                  fontSize={ROOT_FONT_SIZE}
+                  fontFamily="var(--font-mono)"
+                  textAnchor="start"
+                >
+                  {chevron}
+                </text>
+              </g>
             </g>
           )
         })}
