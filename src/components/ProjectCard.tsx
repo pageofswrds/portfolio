@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react'
-
 interface ProjectCardProps {
   x: number
   y: number
@@ -12,7 +10,7 @@ interface ProjectCardProps {
 }
 
 const TEXT_AREA_HEIGHT = 96
-const DEFAULT_ASPECT_RATIO = 16 / 10
+const FIXED_ASPECT_RATIO = 16 / 10
 
 export function ProjectCard({
   x,
@@ -24,20 +22,7 @@ export function ProjectCard({
   onClick,
   centered = false,
 }: ProjectCardProps) {
-  const [aspectRatio, setAspectRatio] = useState(DEFAULT_ASPECT_RATIO)
-
-  // Load image to get natural dimensions
-  useEffect(() => {
-    if (!thumbnail) return
-
-    const img = new Image()
-    img.onload = () => {
-      setAspectRatio(img.naturalWidth / img.naturalHeight)
-    }
-    img.src = thumbnail
-  }, [thumbnail])
-
-  const width = imageHeight * aspectRatio
+  const width = imageHeight * FIXED_ASPECT_RATIO
   const totalHeight = imageHeight + TEXT_AREA_HEIGHT
 
   const renderX = centered ? x - width / 2 : x
