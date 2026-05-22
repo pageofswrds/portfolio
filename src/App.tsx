@@ -2,16 +2,9 @@ import { useState } from 'react'
 import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ZoomControls } from './components/ZoomControls'
-import { ProjectCard } from './components/ProjectCard'
-import { ProjectModal } from './components/ProjectModal'
-import { BlogModal } from './components/BlogModal'
-import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
-import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
-import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
 
 const FOCAL_X = 0
 const FOCAL_Y = 0
-const IMAGE_HEIGHT = 260
 
 const IDENTITY_ANCHOR_SIZE = 180
 const IDENTITY_GAP = 32
@@ -20,78 +13,8 @@ const IDENTITY_TAGLINE_FONT_SIZE = 18
 const IDENTITY_BUTTON_HEIGHT = 40
 const IDENTITY_BUTTON_GAP = 12
 
-const PRESENT_OFFSET_Y = 320
-
-const ROOT_Y = -240
-const ROOT_X_SPACING = 500
-const ROOT_X_POSITIONS: Record<RootId, number> = {
-  'past-work': -ROOT_X_SPACING,
-  product: 0,
-  research: ROOT_X_SPACING,
-}
-
-const ROOT_FONT_SIZE = 18
-const ROOT_BUBBLE_WIDTH = 140
-const ROOT_BUBBLE_HEIGHT = 44
-
-const CHAIN_CONFIG: Omit<FunnelConfig, 'focalX' | 'focalY'> = {
-  topMargin: 80,
-  verticalSpacing: 380,
-  maxSpread: 24,
-  jitterRange: 24,
-}
-
-const projectBySlug = new Map(projects.map((p) => [p.slug, p]))
-const blogBySlug = new Map(blogPosts.map((b) => [b.slug, b]))
-
-type Artifact =
-  | { kind: 'project'; data: ProjectContent }
-  | { kind: 'blog'; data: BlogContent }
-
-function lookupArtifact(slug: string): Artifact | null {
-  const proj = projectBySlug.get(slug)
-  if (proj) return { kind: 'project', data: proj }
-  const blog = blogBySlug.get(slug)
-  if (blog) return { kind: 'blog', data: blog }
-  return null
-}
-
 function App() {
-  const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
-  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
-  const [activeRoot, setActiveRoot] = useState<RootId | null>(null)
-
-  const kairos = projectBySlug.get('kairos') ?? null
-
-  const activeChain = (() => {
-    if (!activeRoot) return null
-    const root = ROOTS[activeRoot]
-    const rootX = ROOT_X_POSITIONS[activeRoot]
-    const artifacts = root.members
-      .map(lookupArtifact)
-      .filter((a): a is Artifact => a !== null)
-
-    const placeable: Placeable[] = artifacts.map((a) => ({
-      slug: a.data.slug,
-      date: a.data.date,
-      position: a.data.position,
-    }))
-
-    const placements = placeAncestry(placeable, {
-      ...CHAIN_CONFIG,
-      focalX: rootX,
-      focalY: ROOT_Y,
-    })
-
-    const placementBySlug = new Map(placements.map((p) => [p.slug, p]))
-
-    return { artifacts, placementBySlug }
-  })()
-
-  const handleRootClick = (id: RootId) => {
-    setActiveRoot((current) => (current === id ? null : id))
-  }
 
   return (
     <>
@@ -248,110 +171,7 @@ function App() {
             </a>
           </g>
         </g>
-
-        {/* Three root nodes — row above identity */}
-        {ROOT_IDS.map((id) => {
-          const isActive = activeRoot === id
-          const rootX = ROOT_X_POSITIONS[id]
-          const label = ROOTS[id].label
-          const chevron = isActive ? '▴' : '▾'
-
-          return (
-            <g
-              key={id}
-              transform={`translate(${rootX}, ${ROOT_Y})`}
-              className={`root-node ${isActive ? 'active' : ''}`}
-              onClick={() => handleRootClick(id)}
-            >
-              <g className="root-content">
-                <rect
-                  className="root-bg"
-                  x={-ROOT_BUBBLE_WIDTH / 2}
-                  y={-ROOT_BUBBLE_HEIGHT / 2}
-                  width={ROOT_BUBBLE_WIDTH}
-                  height={ROOT_BUBBLE_HEIGHT}
-                  rx={ROOT_BUBBLE_HEIGHT / 2}
-                />
-                <text
-                  className="root-label"
-                  x={0}
-                  y={6}
-                  fontSize={ROOT_FONT_SIZE}
-                  fontFamily="var(--font-mono)"
-                  fontWeight="500"
-                  textAnchor="middle"
-                >
-                  {label}{' '}
-                  <tspan className="root-chevron">{chevron}</tspan>
-                </text>
-              </g>
-            </g>
-          )
-        })}
-
-        {/* Active chain — cards above the active root */}
-        {activeChain &&
-          activeChain.artifacts.map((artifact) => {
-            const placement = activeChain.placementBySlug.get(artifact.data.slug)
-            if (!placement) return null
-
-            const onClick = () => {
-              if (artifact.kind === 'project') {
-                setSelectedProject(artifact.data)
-              } else {
-                setSelectedBlogPost(artifact.data)
-              }
-            }
-
-            const yearLabel =
-              artifact.kind === 'project'
-                ? artifact.data.year
-                : (artifact.data.subtitle.split('•')[0]?.trim() ?? '')
-
-            const thumb =
-              artifact.kind === 'project'
-                ? artifact.data.thumbnailSmall
-                : artifact.data.thumbnail
-
-            return (
-              <ProjectCard
-                key={`${artifact.kind}-${artifact.data.slug}`}
-                x={placement.x}
-                y={placement.y}
-                imageHeight={IMAGE_HEIGHT}
-                title={artifact.data.title}
-                year={yearLabel}
-                thumbnail={thumb}
-                onClick={onClick}
-                centered
-              />
-            )
-          })}
-
-        {/* Present — Kairos card below focal point */}
-        {kairos && (
-          <ProjectCard
-            x={FOCAL_X}
-            y={FOCAL_Y + PRESENT_OFFSET_Y}
-            imageHeight={IMAGE_HEIGHT}
-            title={kairos.title}
-            year={kairos.year}
-            thumbnail={kairos.thumbnailSmall}
-            onClick={() => setSelectedProject(kairos)}
-            centered
-          />
-        )}
       </Canvas>
-
-      <ProjectModal
-        project={selectedProject}
-        onClose={() => setSelectedProject(null)}
-      />
-
-      <BlogModal
-        post={selectedBlogPost}
-        onClose={() => setSelectedBlogPost(null)}
-      />
     </>
   )
 }
