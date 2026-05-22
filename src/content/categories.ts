@@ -24,7 +24,6 @@ export const ROOTS: Record<RootId, RootDefinition> = {
     label: 'Research',
     members: [
       'position-in-time',
-      'a-plan-for-deep-work',
       'constraints-in-xr',
       'is-xr-in-search-of-a-problem',
       'calculated-risk',
