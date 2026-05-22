@@ -11,7 +11,7 @@ const mdxModules = import.meta.glob<{
   frontmatter: {
     title?: string
     subtitle?: string
-    published?: string
+    date?: string
     year?: string
     location?: string
     thumbnail?: string
@@ -49,7 +49,7 @@ export const projects: ProjectContent[] = Object.entries(mdxModules)
       slug,
       title: frontmatter.title || slug,
       subtitle: frontmatter.subtitle || '',
-      date: frontmatter.published || '',
+      date: frontmatter.date || '',
       year: frontmatter.year || '',
       location: frontmatter.location || '',
       thumbnail: frontmatter.thumbnail || '',
