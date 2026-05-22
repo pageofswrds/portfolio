@@ -19,42 +19,55 @@ const IDENTITY_GAP = 32
 const IDENTITY_NAME_FONT_SIZE = 64
 const IDENTITY_TAGLINE_FONT_SIZE = 18
 
-// Tab row sits below the identity card
-const TAB_Y = 170
-const TAB_SPACING = 160
-const TAB_WIDTH = 140
-const TAB_HEIGHT = 44
+// Tabs sit inside the identity card group, in the slot where the old buttons lived.
+// Sized to match the original button typography lockup: 40 tall, font-sans 14pt 500,
+// rx=8, variable widths fitted to each label.
+const TAB_ROW_OFFSET_X = -200
+const TAB_ROW_OFFSET_Y = -IDENTITY_ANCHOR_SIZE / 2 + IDENTITY_NAME_FONT_SIZE + 64
+
+const TAB_HEIGHT = 40
 const TAB_RX = 8
-const TAB_FONT_SIZE = 18
+const TAB_GAP = 12
+const TAB_FONT_SIZE = 14
 
-// Active tab's content panel sits below the tab row
-const PANEL_Y = TAB_Y + 60
+const TAB_WIDTHS: Record<RootId, number> = {
+  'core-details': 150,
+  'past-work': 120,
+  product: 100,
+  research: 110,
+}
 
-// Core details external links — small button nodes in a horizontal row
-const LINK_WIDTH = 120
-const LINK_HEIGHT = 36
-const LINK_GAP = 12
+// Link panel sits just below the identity card when Core details is active.
+const LINK_PANEL_Y = 120
+const LINK_HEIGHT = 40
 const LINK_RX = 8
+const LINK_GAP = 12
 const LINK_FONT_SIZE = 14
+const LINK_ROW_OFFSET_X = -200
 
 interface ExternalLink {
   label: string
   href: string
+  width: number
 }
 
 const CORE_DETAILS_LINKS: ExternalLink[] = [
-  { label: 'LinkedIn', href: 'https://linkedin.com/in/schultzdavidg' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/schultzdavidg', width: 120 },
   {
     label: 'Resume',
     href: 'https://schultzdavidg-portfolio.s3.us-west-1.amazonaws.com/files/davidschultz-resume.pdf',
+    width: 100,
   },
-  { label: 'studiozojer.co', href: 'https://studiozojer.co' },
-  { label: 'Bluesky', href: 'https://bsky.app/profile/pageofswrds.kairos.solar' },
+  { label: 'studiozojer.co', href: 'https://studiozojer.co', width: 140 },
+  { label: 'Bluesky', href: 'https://bsky.app/profile/pageofswrds.kairos.solar', width: 110 },
 ]
 
-// Per-chain placement: narrow vertical column extending downward with light jitter
+// Chain panel for non-Core-details tabs — pushed further down so the first card
+// clears the identity card.
+const CHAIN_FOCAL_Y = 180
+
 const CHAIN_CONFIG: Omit<FunnelConfig, 'focalX' | 'focalY'> = {
-  topMargin: 40,
+  topMargin: 120,
   verticalSpacing: 380,
   maxSpread: 24,
   jitterRange: 24,
@@ -76,9 +89,19 @@ function lookupArtifact(slug: string): Artifact | null {
   return null
 }
 
-function tabX(id: RootId): number {
-  const idx = ROOT_IDS.indexOf(id)
-  return (idx - (ROOT_IDS.length - 1) / 2) * TAB_SPACING
+// Left edge of a tab within the tab-row local coordinate system.
+function tabLocalX(id: RootId): number {
+  let x = 0
+  for (const rootId of ROOT_IDS) {
+    if (rootId === id) return x
+    x += TAB_WIDTHS[rootId] + TAB_GAP
+  }
+  return x
+}
+
+// Canvas-space x at the center of a tab (used for chain centering).
+function tabCenterCanvasX(id: RootId): number {
+  return TAB_ROW_OFFSET_X + tabLocalX(id) + TAB_WIDTHS[id] / 2
 }
 
 function App() {
@@ -102,8 +125,8 @@ function App() {
 
     const placements = placeAncestry(placeable, {
       ...CHAIN_CONFIG,
-      focalX: tabX(activeRoot),
-      focalY: PANEL_Y,
+      focalX: tabCenterCanvasX(activeRoot),
+      focalY: CHAIN_FOCAL_Y,
     })
 
     const placementBySlug = new Map(placements.map((p) => [p.slug, p]))
@@ -111,15 +134,9 @@ function App() {
     return { artifacts, placementBySlug }
   })()
 
-  // Tabs are now exclusive — clicking switches; clicking the active tab is a no-op
   const handleTabClick = (id: RootId) => {
     setActiveRoot(id)
   }
-
-  // Compute total link-row width to center it under x=0
-  const linkRowWidth =
-    CORE_DETAILS_LINKS.length * LINK_WIDTH + (CORE_DETAILS_LINKS.length - 1) * LINK_GAP
-  const linkRowStartX = -linkRowWidth / 2
 
   return (
     <>
@@ -160,88 +177,98 @@ function App() {
           >
             Building thinking models at studiozojer
           </text>
-        </g>
 
-        {/* Tab row — below identity card */}
-        {ROOT_IDS.map((id) => {
-          const isActive = activeRoot === id
-          const x = tabX(id)
-          const label = ROOTS[id].label
+          {/* Tab row — inside the identity card, where the buttons used to live */}
+          <g transform={`translate(${TAB_ROW_OFFSET_X}, ${TAB_ROW_OFFSET_Y})`}>
+            {ROOT_IDS.map((id) => {
+              const isActive = activeRoot === id
+              const width = TAB_WIDTHS[id]
+              const xLeft = tabLocalX(id)
+              const label = ROOTS[id].label
 
-          return (
-            <g
-              key={id}
-              transform={`translate(${x}, ${TAB_Y})`}
-              className={`root-node ${isActive ? 'active' : ''}`}
-              onClick={() => handleTabClick(id)}
-            >
-              <g className="root-content">
-                <rect
-                  className="root-bg"
-                  x={-TAB_WIDTH / 2}
-                  y={-TAB_HEIGHT / 2}
-                  width={TAB_WIDTH}
-                  height={TAB_HEIGHT}
-                  rx={TAB_RX}
-                />
-                <text
-                  className="root-label"
-                  x={0}
-                  y={6}
-                  fontSize={TAB_FONT_SIZE}
-                  fontFamily="var(--font-mono)"
-                  fontWeight="500"
-                  textAnchor="middle"
-                >
-                  {label}
-                </text>
-              </g>
-            </g>
-          )
-        })}
-
-        {/* Core details panel — 4 external links in a horizontal row */}
-        {activeRoot === 'core-details' &&
-          CORE_DETAILS_LINKS.map((link, i) => {
-            const x = linkRowStartX + i * (LINK_WIDTH + LINK_GAP) + LINK_WIDTH / 2
-            return (
-              <g
-                key={link.label}
-                transform={`translate(${x}, ${PANEL_Y})`}
-                className="root-node"
-              >
-                <a
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              return (
+                <g
+                  key={id}
+                  transform={`translate(${xLeft + width / 2}, ${TAB_HEIGHT / 2})`}
+                  className={`root-node ${isActive ? 'active' : ''}`}
+                  onClick={() => handleTabClick(id)}
                 >
                   <g className="root-content">
                     <rect
                       className="root-bg"
-                      x={-LINK_WIDTH / 2}
-                      y={-LINK_HEIGHT / 2}
-                      width={LINK_WIDTH}
-                      height={LINK_HEIGHT}
-                      rx={LINK_RX}
+                      x={-width / 2}
+                      y={-TAB_HEIGHT / 2}
+                      width={width}
+                      height={TAB_HEIGHT}
+                      rx={TAB_RX}
                     />
                     <text
                       className="root-label"
                       x={0}
                       y={5}
-                      fontSize={LINK_FONT_SIZE}
+                      fontSize={TAB_FONT_SIZE}
                       fontFamily="var(--font-sans)"
                       fontWeight="500"
                       textAnchor="middle"
                     >
-                      {link.label}
+                      {label}
                     </text>
                   </g>
-                </a>
-              </g>
-            )
-          })}
+                </g>
+              )
+            })}
+          </g>
+        </g>
 
-        {/* Artifact chain — cards extending downward from tab row */}
+        {/* Core details panel — external links in a horizontal row below identity */}
+        {activeRoot === 'core-details' && (
+          <g transform={`translate(${LINK_ROW_OFFSET_X}, ${LINK_PANEL_Y})`}>
+            {(() => {
+              let xCursor = 0
+              return CORE_DETAILS_LINKS.map((link) => {
+                const centerX = xCursor + link.width / 2
+                xCursor += link.width + LINK_GAP
+                return (
+                  <g
+                    key={link.label}
+                    transform={`translate(${centerX}, ${LINK_HEIGHT / 2})`}
+                    className="root-node"
+                  >
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <g className="root-content">
+                        <rect
+                          className="root-bg"
+                          x={-link.width / 2}
+                          y={-LINK_HEIGHT / 2}
+                          width={link.width}
+                          height={LINK_HEIGHT}
+                          rx={LINK_RX}
+                        />
+                        <text
+                          className="root-label"
+                          x={0}
+                          y={5}
+                          fontSize={LINK_FONT_SIZE}
+                          fontFamily="var(--font-sans)"
+                          fontWeight="500"
+                          textAnchor="middle"
+                        >
+                          {link.label}
+                        </text>
+                      </g>
+                    </a>
+                  </g>
+                )
+              })
+            })()}
+          </g>
+        )}
+
+        {/* Artifact chain — cards extending downward from the active tab */}
         {activeChain &&
           activeChain.artifacts.map((artifact) => {
             const placement = activeChain.placementBySlug.get(artifact.data.slug)
