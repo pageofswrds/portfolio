@@ -17,7 +17,7 @@ export const ROOTS: Record<RootId, RootDefinition> = {
   product: {
     id: 'product',
     label: 'Product',
-    members: ['calculated-risk', 'rapid-refactoring'],
+    members: [],
   },
   research: {
     id: 'research',
@@ -27,7 +27,9 @@ export const ROOTS: Record<RootId, RootDefinition> = {
       'a-plan-for-deep-work',
       'constraints-in-xr',
       'is-xr-in-search-of-a-problem',
+      'calculated-risk',
       'embodied-interfaces',
+      'rapid-refactoring',
     ],
   },
   'past-work': {
