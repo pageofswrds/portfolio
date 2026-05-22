@@ -3,66 +3,85 @@ title: "The cognitive lightcone"
 subtitle: Apr 6, 2026 • 6 min read
 year: 2026
 date: 2026-04-06
+thumbnail: https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.5d2377cd-1c7f-4d98-afd5-0b5d490ffa9f.png
 order: null
 visible: true
 ---
 
 So, you know how flashlights have a dial that lets you change how wide it spreads? With the same amount of light, you can focus it to be really bright in one spot — or you can spread it wide to see everything in your periphery (albeit, weakly).
 
-That's the intuition behind a concept called the cognitive lightcone, a term coined by Michael Levin. The idea is that every agentic being has a range over which it can think coherently. Some agents are specialists; fine-tuned to play e.g. Beethoven's Moonlight Sonata in front of an audience. Other agents are generalists, who can pick up any task and do it decently enough.
+That's the intuition behind a concept called the **cognitive lightcone**, a term coined by [Michael Levin](https://reading.supply/@pageofswrds/diverse-forms-of-intelligence-Rmfkj3)[](https://reading.supply/@pageofswrds/diverse-forms-of-intelligence-Rmfkj3). The idea is that every agentic being has a range over which it can think coherently. Some agents are specialists; fine-tuned to play e.g. Beethoven's Moonlight Sonata in front of an audience. Other agents are generalists, who can pick up any task and do it decently enough.
+
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.754f9bd3-53b3-4819-88ba-3cb7ebf61ef9.png)
 
 The important thing is that the agent's underlying material make-up is what determines the strength + shape of its lightcone. In a flashlight, it's the bulb, reflector, housing, etc. In a musician, it's their muscle memory. And in LLMs... it's a combination of training data + tokens loaded into context.
 
 ## What's actually in a context window?
 
-Here's something that surprised me when I first learned it: every time you send a prompt to an LLM, you're not sending a message; you're sending the entire conversation. Every prior exchange, system instruction, loaded file — it all gets re-sent as one big packet of tokens.
+Here's something that surprised me when I first learned it: every time you send a prompt to an LLM, you're not sending a message; you're sending *the entire conversation*. Every prior exchange, system instruction, loaded file — it all gets re-sent as one big packet of tokens.
 
-This means that the context window isn't actually a chat log. It's more like a workspace, where every loaded token will influence the model's next response. And theoretically, we can enhance model capability through intentional curation of what is currently loaded into the window.
+This means that the context window isn't actually a chat log. It's more like a **workspace**, where every loaded token will influence the model's next response. And theoretically, we can enhance model capability through intentional curation of what is currently loaded into the window.
 
-For example, let's say our knowledge graph contains multiple clusters of information about our product. It has nodes for features, philosophy, monetization strategies, etc.
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.d69532e6-2f15-44db-a549-103926a63a47.png)
 
-When you start a fresh window, the model won't really be able to talk about our product, because it'll have more questions than answers. And as you spend time teaching it about what the product does, the context window gets clogged up with frayed, split ends. Its attention spreads thinner. Information loaded early in the window gradually loses influence under the weight of everything that follows. And ultimately, it won't be as good at actually using the information.
+For example, lets say our knowledge graph contains multiple clusters of information about our product. It has nodes for features, philosophy, monetization strategies, etc.
 
-If you instead start a fresh window by immediately loading the relevant nodes (which are finely tuned to convey as much meaning in as few tokens as possible), you effectively equip the model with tools to reason about the problem and generate novel solutions.
+When you start a fresh window, the model won't really be able to talk about the product, because it'll have more questions than answers. You can give it your code, and spend time teaching it about what the product does — but as you do so the context window gets clogged up with [frayed, split ends](https://www.reddit.com/r/longhair/comments/1jmk7b6/what_causes_split_ends/). Its attention spreads thinner. Information loaded early in the window gradually loses influence under the weight of everything that follows. And ultimately, it won't be as good at actually *using* the information.
+
+If you instead start a fresh window by immediately loading the relevant nodes (which are finely tuned to convey as much meaning in as few tokens as possible), you effectively equip the model with tools to *reason* about the problem and generate novel solutions.
 
 Loading nodes like this is an act of expanding the cognitive lightcone. Giving the model tokens is like giving it more juice. And the shape of those tokens determine whether the beam is attuned for breadth, or depth.
 
-In other words, the cognitive lightcone of a context window is the boundary of what it can think about coherently right now. It's not about what it knows (the model's training handles that) — it's moreso about the current tools at its disposal.
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.914c29d6-62ea-419f-b27d-710353f484c1.png)
 
-## The graph as a control surface
+In other words, the cognitive lightcone of a context window is the boundary of what it can think about coherently right now. It's not about what it *knows* (the model's training handles that) — it's moreso about the current tools at its disposal.
+
+**Here's the key thing:** if there are too many tools in the workspace at the same time, the model will get tripped up on which tool is most appropriate for the task at hand. (This problem becomes more obvious at scale.)
+
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.835b4b4a-0938-409d-8bd7-d429f1e5bc1f.png)
+
+### The graph as a control surface
 
 So the question becomes: can you shape the lightcone deliberately? Well, if your knowledge lives in a flat conversation history, no. You're stuck with whatever accumulated in the window in whatever order it arrived.
 
 But if your knowledge lives in a graph... (i.e. discrete nodes with explicit connections) — well, then you effectively have a control surface where you can pick-and-choose which nodes are loaded into the window.
 
-This is what I've been building with tycho; we store knowledge in first-principles abstractions that we call "archetypes." These aren't raw data, or notes, or transcripts; they're condensed nodes that each capture a single concept at its most fundamental level, with explicit links to related concepts.
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.bba4e9bd-a8a3-4e3e-a85c-2fd53a24f897.png)
 
-The thinking is: if you get down to first principles, you can build your way back up with a more coherent signal. For example, the model will be better at storytelling if it is equipped with the basic principles of storytelling.
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.20f387e2-7f6c-4bdb-9a79-5159e0e4a110.png)
 
-What we've found is that loading three well-chosen archetypes into a context window can give the system more coherent range than loading e.g. thirty pages of data. Not because less is more, but because first principles are low entropy; every word is carefully chosen, and packs more information density in fewer tokens.
+This is what I've been building with [tycho](https://reading.supply/@pageofswrds/brahes-problem-5ZhQah); we store knowledge in first-principles abstractions that we call “archetypes.” These aren't raw data, or notes, or transcripts; they're condensed nodes that each capture a single concept at its most fundamental level, with explicit links to related concepts.
+
+The thinking is: if you get down to first principles, you can build your way back up to a more coherent signal. For example, the model will be better at storytelling if it is equipped with the basic principles of storytelling.
+
+What we've found is that loading three well-chosen archetypes into a context window can give the system more coherent range than loading e.g. thirty pages of data. Not because less is more, but because first principles are low entropy; every word is carefully chosen, and packs more information density in a fewer amount of tokens.
+
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.1b177749-1ccd-4df0-9c72-b1ff20d0779a.png)
 
 ## Interoperability
 
 Here's where it gets interesting!
 
-If you can see what's loaded in a context window (i.e. which graph nodes are active), then you can see the shape of the lightcone. And if you can see the shape, you can do things with it.
+If you can see what's loaded in a context window (i.e. which graph nodes are active), then you can see the shape of the lightcone. And if you can see the shape, you can *do* things with it.
 
 Imagine you have two context windows. Both are working on related problems, but their conversations have gone in different directions. Without the graph, these are two opaque blobs of tokens. There's no clean way to see what overlaps, what's unique to each, or what's complementary.
 
-But with the graph, you can map it. E.g. window A has nodes {X, Y, Z} loaded. Window B has nodes {Y, Z, W}. They share Y and Z; the novel territory is X and W.
+But with the graph, you can *map* it. E.g. window A has nodes \{X, Y, Z\} loaded. Window B has nodes \{Y, Z, W\}.  They share Y and Z; the novel territory is X and W.
 
-Now that we know this, we can merge the two windows — not by dumping one conversation into the other, but by identifying the shared substrate and their unique contributions. You'd be able to fork a window at a decision point, explore multiple directions independently, and then recombine what each branch discovered. Handing off a task from one window to another looks like transferring the relevant nodes (not the entire history).
+Now that we know this, we can merge the two windows — not by dumping one conversation into the other, but by identifying the shared substrate and their unique contributions. You'd be able to fork a window at a decision point, explore multiple directions independently, and then recombine what each branch discovered. Handing off a task from one window looks like transferring the relevant nodes (not the entire history).
 
-This makes the lightcone legible. It turns the context window from a black box into something you can inspect, shape, and coordinate across sessions.
+This makes the lightcone *legible*. It turns the context window from a black box into something you can inspect, shape, and coordinate across sessions.
+
+![](https://storage.googleapis.com/reading-supply-assets/reading.supply.2500.285e0519-5616-4a2b-a1e4-fc314290c706.png)
 
 ## What this implies
 
-The cognitive lightcone isn't just a useful metaphor, it's a design parameter.
+The cognitive lightcone isn't just a useful metaphor, it's a *design parameter*.
 
 Right now, most people interact with LLMs by typing into a box and hoping the context window holds together. I've noticed that the smarter ones write careful system prompts + maintain project files. But almost nobody (rn) is treating the context window's lightcone as the thing to optimize.
 
 There's an opportunity to deliberately shape what's in the window based on what the task actually needs, and yet I don't see anyone talking about interoperability. We should be able to compose, merge, fork, and coordinate context windows.
 
-A shared knowledge substrate (the graph) is what makes this possible, because it gives the lightcone structure. It turns "what's in the window" from an accident into a decision.
+A shared knowledge substrate (the graph) is what makes this possible, because it gives the lightcone structure. It turns “what's in the window” from an accident → a decision.
 
-TL;DR: Token efficiency isn't about saving costs. It's about shaping the flashlight beam for the task at hand.
+**TL;DR: **Token efficiency isn't just about saving costs. It's about shaping the flashlight beam for the task at hand.
