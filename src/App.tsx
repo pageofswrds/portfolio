@@ -102,7 +102,7 @@ const CORE_DETAILS_LINKS: ExternalLink[] = [
   },
   { label: 'studiozojer.co', href: 'https://studiozojer.co', width: 140, icon: StudioIcon },
   { label: 'Bluesky', href: 'https://bsky.app/profile/pageofswrds.kairos.solar', width: 110, icon: BlueskyIcon },
-  { label: 'Threads', href: 'https://www.threads.com/@pageofswrds', width: 110, icon: ThreadsIcon },
+  { label: 'Threads', href: 'https://www.threads.com/@studiozojer', width: 110, icon: ThreadsIcon },
 ]
 
 // Chain panel for non-Core-details tabs — pushed further down so the first card
