@@ -254,7 +254,7 @@ export function AsciiFlowField({
       >
         interact with me!
       </text>
-      <foreignObject x={x} y={y} width={estimatedWidth} height={height + padding * 2 + 2}>
+      <foreignObject x={x} y={y} width={estimatedWidth} height={height + padding * 2 + 2} data-block-pan="">
         <div
           // @ts-expect-error xmlns is valid for foreignObject content
           xmlns="http://www.w3.org/1999/xhtml"

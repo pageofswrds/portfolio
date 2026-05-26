@@ -105,9 +105,11 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
       .scaleExtent([0.3, 2])
       // Filter: allow drag and pinch-to-zoom (ctrl+wheel), block regular wheel
       .filter((event) => {
-        // Ignore events from inside foreignObject (e.g., ASCII flow field)
+        // Opt-in block: regions that want exclusive event handling (e.g. the
+        // ASCII flow field) mark themselves with data-block-pan. Passive
+        // foreignObjects (card text, body copy) stay pannable.
         const target = event.target as Element
-        if (target.closest?.('foreignObject')) {
+        if (target.closest?.('[data-block-pan]')) {
           return false
         }
 
@@ -169,14 +171,13 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
           const { x, y, k } = transformRef.current
 
           momentum.stop(x, y, (newX, newY) => {
-            // Update transform directly for performance (bypass d3-zoom during animation)
             transformRef.current = { x: newX, y: newY, k }
             g.attr('transform', `translate(${newX},${newY}) scale(${k})`)
-          }, () => {
-            // Sync final position with d3-zoom when momentum ends
-            const { x: finalX, y: finalY, k: finalK } = transformRef.current
-            const finalTransform = d3.zoomIdentity.translate(finalX, finalY).scale(finalK)
-            svg.call(zoom.transform, finalTransform)
+            // Keep d3-zoom's internal __zoom in sync each frame. Without this, a
+            // touchstart mid-decay captures its world-space anchor from a stale
+            // transform, producing a snap on the next touchmove.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(svgElement as any).__zoom = d3.zoomIdentity.translate(newX, newY).scale(k)
           })
         }
       })
