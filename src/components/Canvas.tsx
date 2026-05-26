@@ -169,14 +169,13 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
           const { x, y, k } = transformRef.current
 
           momentum.stop(x, y, (newX, newY) => {
-            // Update transform directly for performance (bypass d3-zoom during animation)
             transformRef.current = { x: newX, y: newY, k }
             g.attr('transform', `translate(${newX},${newY}) scale(${k})`)
-          }, () => {
-            // Sync final position with d3-zoom when momentum ends
-            const { x: finalX, y: finalY, k: finalK } = transformRef.current
-            const finalTransform = d3.zoomIdentity.translate(finalX, finalY).scale(finalK)
-            svg.call(zoom.transform, finalTransform)
+            // Keep d3-zoom's internal __zoom in sync each frame. Without this, a
+            // touchstart mid-decay captures its world-space anchor from a stale
+            // transform, producing a snap on the next touchmove.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(svgElement as any).__zoom = d3.zoomIdentity.translate(newX, newY).scale(k)
           })
         }
       })
