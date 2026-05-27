@@ -1,9 +1,11 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './components/ThemeProvider'
 import './index.css'
 import App from './App.tsx'
+
+const ArboretumPage = lazy(() => import('./pages/Arboretum/Arboretum.tsx'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -11,7 +13,14 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<App />} />
-          {/* Demo routes will go here */}
+          <Route
+            path="/demos/arboretum"
+            element={
+              <Suspense fallback={null}>
+                <ArboretumPage />
+              </Suspense>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

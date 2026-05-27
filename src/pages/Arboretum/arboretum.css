@@ -1,0 +1,433 @@
+/* ============================================
+   ARBORETUM DEMO — page-scoped styles
+   ============================================ */
+
+.arboretum-page {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg-base);
+  color: var(--tx-primary);
+  font-family: var(--font-sans);
+  padding: 40px 32px 80px;
+}
+
+.arboretum-page__header {
+  max-width: 1200px;
+  margin: 0 auto 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arboretum-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tx-secondary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  width: max-content;
+  padding: 6px 10px 6px 8px;
+  border-radius: 6px;
+  transition: background 150ms ease;
+}
+
+.arboretum-page__back:hover {
+  background: var(--bg-card);
+  color: var(--tx-primary);
+}
+
+.arboretum-page__titleblock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.arboretum-page__title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--tx-primary);
+}
+
+.arboretum-page__subtitle {
+  font-size: 14px;
+  color: var(--tx-secondary);
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.arboretum-page__body {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .arboretum-page__body {
+    grid-template-columns: 1fr;
+  }
+  .arboretum-page {
+    padding: 24px 16px 60px;
+  }
+}
+
+.arboretum-page__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+}
+
+@media (max-width: 860px) {
+  .arboretum-page__sidebar {
+    position: static;
+    max-height: none;
+  }
+}
+
+.arboretum-page__main {
+  min-width: 0;
+}
+
+/* ============================================
+   CARDS — generic shell
+   ============================================ */
+
+.arboretum-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bd-secondary);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.arboretum-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.arboretum-card__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.arboretum-card__title-mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--tx-secondary);
+  background: var(--bg-base);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.arboretum-card__subtitle {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tx-tertiary);
+  margin-bottom: 8px;
+}
+
+.arboretum-card__clear {
+  background: transparent;
+  border: none;
+  color: var(--tx-tertiary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.arboretum-card__clear:hover {
+  background: var(--bg-hover);
+  color: var(--tx-primary);
+}
+
+.arboretum-card__hint {
+  font-size: 13px;
+  color: var(--tx-tertiary);
+  line-height: 1.5;
+}
+
+.arboretum-card__section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+
+.arboretum-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-base);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.arboretum-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tx-secondary);
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+
+.arboretum-tab:hover {
+  color: var(--tx-primary);
+}
+
+.arboretum-tab.is-active {
+  background: var(--bg-card);
+  color: var(--tx-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* ============================================
+   INPUTS & LIST
+   ============================================ */
+
+.arboretum-input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--tx-primary);
+  background: var(--bg-base);
+  border: 1px solid var(--bd-secondary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.arboretum-input:focus {
+  border-color: var(--bd-hover);
+}
+
+.arboretum-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 8px;
+  padding: 4px;
+  background: var(--bg-base);
+}
+
+.arboretum-list__empty {
+  padding: 16px;
+  font-size: 13px;
+  color: var(--tx-tertiary);
+  text-align: center;
+}
+
+.arboretum-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--tx-secondary);
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background 100ms ease, color 100ms ease;
+  width: 100%;
+}
+
+.arboretum-list__item:hover {
+  background: var(--bg-card);
+  color: var(--tx-primary);
+}
+
+.arboretum-list__item.is-active {
+  background: var(--bg-button);
+  color: var(--tx-button);
+}
+
+.arboretum-list__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.arboretum-list__count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   STATS / TAGS
+   ============================================ */
+
+.arboretum-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.arboretum-stats__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-base);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.arboretum-stats__row dt {
+  font-size: 11px;
+  color: var(--tx-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.arboretum-stats__row dd {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--tx-primary);
+  margin: 0;
+}
+
+.arboretum-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.arboretum-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--tx-secondary);
+  background: var(--bg-base);
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arboretum-tag--muted {
+  color: var(--tx-tertiary);
+  font-style: italic;
+}
+
+/* ============================================
+   VISUALIZER
+   ============================================ */
+
+.arboretum-viz {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--bd-secondary);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.arboretum-viz__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.arboretum-viz__label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tx-tertiary);
+}
+
+.arboretum-viz__select {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--tx-primary);
+  background: var(--bg-base);
+  border: 1px solid var(--bd-secondary);
+  border-radius: 6px;
+  padding: 6px 10px;
+  outline: none;
+  cursor: inherit;
+}
+
+.arboretum-viz__select:focus {
+  border-color: var(--bd-hover);
+}
+
+.arboretum-viz__scale {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.arboretum-viz__scale-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--tx-secondary);
+}
+
+.arboretum-viz__swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--bd-secondary);
+}
+
+.arboretum-viz__grid {
+  background: var(--bg-base);
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--tx-primary);
+}
+
+.arboretum-viz__hint {
+  font-size: 12px;
+  color: var(--tx-tertiary);
+  line-height: 1.5;
+}
