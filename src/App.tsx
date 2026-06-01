@@ -100,6 +100,12 @@ const CORE_DETAILS_LINKS: ExternalLink[] = [
     width: 100,
     icon: ResumeIcon,
   },
+  {
+    label: 'CV',
+    href: 'https://schultzdavidg-portfolio.s3.us-west-1.amazonaws.com/files/davidschultz-CV.pdf',
+    width: 80,
+    icon: ResumeIcon,
+  },
   { label: 'studiozojer.co', href: 'https://studiozojer.co', width: 140, icon: StudioIcon },
   { label: 'Bluesky', href: 'https://bsky.app/profile/pageofswrds.kairos.solar', width: 110, icon: BlueskyIcon },
   { label: 'Threads', href: 'https://www.threads.com/@studiozojer', width: 110, icon: ThreadsIcon },
