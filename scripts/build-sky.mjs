@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const dataDir = join(here, '..', 'data', 'd3-celestial')
 const outFile = join(here, '..', 'src', 'sky', 'sky.generated.ts')
 
-const MAG_CUTOFF = 6.5
+const MAG_CUTOFF = 7.0
 const STARS_FILE = 'stars.8.json' // deep catalog (to mag 8); we filter below
 
 // Approximate a star's RGB color from its B-V color index (blue -> white -> red).
