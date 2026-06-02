@@ -30,12 +30,13 @@ const GRATICULE_STEP = 10 // degrees between grid lines
 const GRID_ALPHA = 0.09
 const EQUATOR_ALPHA = 0.18
 const ECLIPTIC: [number, number, number] = [255, 198, 74] // vivid gold — the zodiac path
-const ECLIPTIC_ALPHA = 0.4
+const ECLIPTIC_ALPHA = 0.18
 
 // Stars: brightness drives opacity (faint stars recede), glyph is fixed (no
 // blinking), with a gentle slow alpha shimmer instead of glyph-cycling.
-const STAR_MIN_ALPHA = 0.25
-const STAR_TWINKLE = 0.18 // gentle alpha shimmer (per-star phase), not glyph-cycling
+const STAR_MIN_ALPHA = 0.12 // faint stars dim hard -> strong brightness contrast
+const STAR_GAMMA = 1.7 // >1 pushes the midrange dimmer so the bright end pops
+const STAR_TWINKLE = 0.35 // alpha shimmer (per-star phase); most visible on bright stars
 
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
 const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
@@ -235,13 +236,14 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
           arc((i) => ({ lon, lat: -80 + i * 3.2 }), 50)
         }
         ctx.stroke()
-        ctx.setLineDash([]) // equator (and everything after) stays solid
 
-        // celestial equator, a touch brighter
+        // celestial equator — dashed, a touch brighter
         ctx.globalAlpha = lineReveal * EQUATOR_ALPHA
+        ctx.setLineDash([4, 4])
         ctx.beginPath()
         arc((i) => ({ lon: i * 2, lat: 0 }), 180)
         ctx.stroke()
+        ctx.setLineDash([])
         ctx.globalAlpha = 1
       }
 
@@ -250,9 +252,11 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.strokeStyle = `rgb(${ECLIPTIC[0]}, ${ECLIPTIC[1]}, ${ECLIPTIC[2]})`
         ctx.lineWidth = 1.25
         ctx.globalAlpha = lineReveal * ECLIPTIC_ALPHA
+        ctx.setLineDash([4, 4])
         ctx.beginPath()
         arc((i) => eclipticPoint(i * 2), 180)
         ctx.stroke()
+        ctx.setLineDash([])
         ctx.globalAlpha = 1
       }
 
@@ -290,8 +294,9 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
           if (!pr.front) continue
           const b = brightness(s.mag)
           // per-star phase so the field shimmers rather than pulsing in unison
-          const tw = 1 + STAR_TWINKLE * Math.sin(now * 0.002 + s.lon * 0.7 + s.lat * 1.3)
-          ctx.globalAlpha = Math.min(1, (STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * b) * tw)
+          const tw = 1 + STAR_TWINKLE * Math.sin(now * 0.0025 + s.lon * 0.7 + s.lat * 1.3)
+          const base = STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * Math.pow(b, STAR_GAMMA)
+          ctx.globalAlpha = Math.min(1, base * tw)
           ctx.fillStyle = s.color
           ctx.fillText(asciiChar(b), cx + pr.x * radius, cy - pr.y * radius)
         }
