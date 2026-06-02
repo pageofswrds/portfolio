@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { projectOrthographic, type ViewRotation } from '../sky/projection'
 import { STARS, CONSTELLATIONS, starById, brightness } from '../sky/constellations'
-import { eclipticPoint } from '../sky/lines'
+import { eclipticPoint, sphericalCentroid } from '../sky/lines'
 
 interface StarExplorerProps {
   /** the CelestialBox's on-screen rect — FLIP origin */
@@ -52,6 +52,17 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
   const progressRef = useRef(0)
   const closingRef = useRef(false)
   const [grabbing, setGrabbing] = useState(false)
+
+  // each constellation's mean direction on the sphere, for the edge indicators
+  const centroids = useMemo(
+    () =>
+      CONSTELLATIONS.map((c) => {
+        const ids = [...new Set(c.lines.flat())]
+        const coords = ids.map((id) => starById(id)).filter((s) => s !== undefined)
+        return { name: c.name, center: sphericalCentroid(coords) }
+      }),
+    [],
+  )
 
   const beginClose = useCallback(() => {
     closingRef.current = true
@@ -263,6 +274,59 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         }
         ctx.globalAlpha = 1
       }
+
+      // off-screen indicators: edge bubbles pointing at near-side constellations
+      // that are just outside the viewport (pan a little and they arrive).
+      if (p > 0.95) {
+        const pad = 52
+        ctx.font = `12px ${SANS}`
+        ctx.textBaseline = 'middle'
+        for (const { name, center } of centroids) {
+          const pr = projectOrthographic(center, view)
+          if (!pr.front) continue // far side of the sky — let it vanish over the limb
+          const sx = cx + pr.x * radius
+          const sy = cy - pr.y * radius
+          if (sx >= pad && sx <= W - pad && sy >= pad && sy <= H - pad) continue // visible
+
+          // direction from viewport center to the target
+          let dx = sx - W / 2
+          let dy = sy - H / 2
+          const len = Math.hypot(dx, dy)
+          if (len < 1) continue
+          dx /= len
+          dy /= len
+
+          // intersect that ray with the padded viewport rectangle
+          const t = Math.min((W / 2 - pad) / Math.abs(dx || 1e-6), (H / 2 - pad) / Math.abs(dy || 1e-6))
+          const ex = W / 2 + dx * t
+          const ey = H / 2 + dy * t
+
+          // label, pulled inward from the edge, with a small backing for legibility
+          const tw = ctx.measureText(name).width
+          const tx = ex - dx * 16
+          const ty = ey - dy * 16
+          ctx.textAlign = dx > 0 ? 'right' : 'left'
+          const bx = dx > 0 ? tx - tw : tx
+          ctx.globalAlpha = 0.85
+          ctx.fillStyle = 'rgba(8, 10, 22, 0.6)'
+          ctx.fillRect(bx - 4, ty - 9, tw + 8, 18)
+          ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
+          ctx.fillText(name, tx, ty)
+
+          // arrowhead at the edge, pointing outward
+          const px = -dy
+          const py = dx
+          ctx.beginPath()
+          ctx.moveTo(ex + dx * 9, ey + dy * 9)
+          ctx.lineTo(ex + px * 4, ey + py * 4)
+          ctx.lineTo(ex - px * 4, ey - py * 4)
+          ctx.closePath()
+          ctx.fill()
+          ctx.globalAlpha = 1
+        }
+        ctx.textAlign = 'center'
+      }
+
       raf = requestAnimationFrame(draw)
     }
     raf = requestAnimationFrame(draw)
@@ -271,7 +335,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
     }
-  }, [originRect, onClose])
+  }, [originRect, onClose, centroids])
 
   const onPointerDown = (e: React.PointerEvent) => {
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
