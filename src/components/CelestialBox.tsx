@@ -21,6 +21,7 @@ const ROWS = 20
 const VIEW_LAT = 12
 const REST_SPEED = 3 // deg/sec
 const HOVER_SPEED = 14
+const BOX_MAG_LIMIT = 2.8 // only bright stars in the tiny box, so it reads as a sparse orb
 
 export function CelestialBox({ x, y, size, paused = false, onOpen }: CelestialBoxProps) {
   const [lon, setLon] = useState(20)
@@ -46,6 +47,7 @@ export function CelestialBox({ x, y, size, paused = false, onOpen }: CelestialBo
 
   const points: AsciiPoint[] = []
   for (const s of STARS) {
+    if (s.mag > BOX_MAG_LIMIT) continue
     const p = projectOrthographic(s, { lon, lat: VIEW_LAT })
     if (p.front) points.push({ x: p.x, y: p.y, weight: brightness(s.mag) })
   }
