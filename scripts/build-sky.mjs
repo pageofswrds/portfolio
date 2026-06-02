@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const dataDir = join(here, '..', 'data', 'd3-celestial')
 const outFile = join(here, '..', 'src', 'sky', 'sky.generated.ts')
 
-const MAG_CUTOFF = 5.0
+const MAG_CUTOFF = 6.0
 
 // Curated proper names for notable stars, keyed by Hipparcos id. Only these get
 // hover labels — deliberately a recognizable handful, not 1,600 designations.
