@@ -34,8 +34,9 @@ const ECLIPTIC_ALPHA = 0.18
 
 // Stars: brightness drives opacity (faint stars recede), glyph is fixed (no
 // blinking), with a gentle slow alpha shimmer instead of glyph-cycling.
-const STAR_MIN_ALPHA = 0.17 // faint-star floor
-const STAR_GAMMA = 1.7 // >1 pushes the midrange dimmer so the bright end pops
+const STAR_MIN_ALPHA = 0.14 // faint-star floor
+const STAR_GAMMA = 2.4 // >1 pushes the midrange dimmer so the bright end pops (contrast)
+const STAR_SIZE_BOOST = 0.6 // bright stars get up to 1+boost x the glyph size (the "ceiling")
 const STAR_TWINKLE = 0.35 // alpha shimmer (per-star phase); most visible on bright stars
 
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
@@ -286,17 +287,25 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = 1
       }
 
-      // stars — fixed glyph; real spectral color; opacity by magnitude; gentle twinkle
+      // stars — real spectral color; opacity AND glyph size scale with brightness
+      // (gamma'd for contrast); gentle per-star twinkle. Size uses 4 cheap tiers so
+      // the brightest stars read bigger without a per-star font cost at 15k+ stars.
       if (L.stars) {
-        ctx.font = `${charSize}px ${MONO}`
+        const fonts = [0, 1, 2, 3].map((t) => `${charSize * (1 + STAR_SIZE_BOOST * (t / 3))}px ${MONO}`)
+        let curTier = -1
         for (const s of STARS) {
           const pr = projectOrthographic(s, view)
           if (!pr.front) continue
           const b = brightness(s.mag)
+          const bg = Math.pow(b, STAR_GAMMA) // contrast curve
+          const tier = Math.round(bg * 3)
+          if (tier !== curTier) {
+            ctx.font = fonts[tier]
+            curTier = tier
+          }
           // per-star phase so the field shimmers rather than pulsing in unison
           const tw = 1 + STAR_TWINKLE * Math.sin(now * 0.0025 + s.lon * 0.7 + s.lat * 1.3)
-          const base = STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * Math.pow(b, STAR_GAMMA)
-          ctx.globalAlpha = Math.min(1, base * tw)
+          ctx.globalAlpha = Math.min(1, (STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * bg) * tw)
           ctx.fillStyle = s.color
           ctx.fillText(asciiChar(b), cx + pr.x * radius, cy - pr.y * radius)
         }
