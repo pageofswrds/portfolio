@@ -28,6 +28,9 @@ const GRATICULE_ALPHA = 0.18 // faintest layer — sits beneath the constellatio
 const ECLIPTIC: [number, number, number] = [255, 198, 74] // vivid gold — the zodiac path
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
 const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
+// How near a constellation must be to show an edge indicator, as a multiple of the
+// viewport's half-diagonal. Lower = indicators appear only when you're nearly there.
+const INDICATOR_REACH = 1.1
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -272,6 +275,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       if (p > 0.6) {
         const pad = 52
         const labelAlpha = Math.min(1, (p - 0.6) / 0.4)
+        const maxDist = Math.hypot(W / 2, H / 2) * INDICATOR_REACH
         ctx.font = `13px ${SANS}`
         ctx.textBaseline = 'middle'
 
@@ -296,6 +300,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
             let dy = sy - H / 2
             const len = Math.hypot(dx, dy)
             if (len < 1) continue
+            if (len > maxDist) continue // too far out toward the limb — no indicator yet
             dx /= len
             dy /= len
             const t = Math.min((W / 2 - pad) / Math.abs(dx || 1e-6), (H / 2 - pad) / Math.abs(dy || 1e-6))
