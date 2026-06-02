@@ -9,9 +9,9 @@ describe('sky data', () => {
       expect(s.lon).toBeLessThan(360)
       expect(s.lat).toBeGreaterThanOrEqual(-90)
       expect(s.lat).toBeLessThanOrEqual(90)
-      // magnitudes can be negative — Sirius is -1.44. Bound it sanely.
+      // magnitudes can be negative — Sirius is -1.44. Bound it sanely (catalog goes to ~8).
       expect(s.mag).toBeGreaterThanOrEqual(-2)
-      expect(s.mag).toBeLessThanOrEqual(7)
+      expect(s.mag).toBeLessThanOrEqual(8)
       expect(s.color).toMatch(/^rgb\(/)
     }
   })

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, lazy, Suspense, type ReactNode } from 'react'
 import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ZoomControls } from './components/ZoomControls'
@@ -6,7 +6,9 @@ import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
 import { BlogModal } from './components/BlogModal'
 import { CelestialBox } from './components/CelestialBox'
-import { StarExplorer } from './components/StarExplorer'
+// Lazy: the full star catalog (~2 MB) lives behind this import and only loads
+// when the explorer actually opens — keeps it out of the initial bundle.
+const StarExplorer = lazy(() => import('./components/StarExplorer').then((m) => ({ default: m.StarExplorer })))
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
 import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
@@ -402,11 +404,13 @@ function App() {
       />
 
       {explorer && (
-        <StarExplorer
-          originRect={explorer.rect}
-          originView={explorer.view}
-          onClose={() => setExplorer(null)}
-        />
+        <Suspense fallback={null}>
+          <StarExplorer
+            originRect={explorer.rect}
+            originView={explorer.view}
+            onClose={() => setExplorer(null)}
+          />
+        </Suspense>
       )}
     </>
   )
