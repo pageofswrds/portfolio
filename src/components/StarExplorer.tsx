@@ -22,8 +22,8 @@ const MONO = '"Fraktion Mono", ui-monospace, monospace'
 const SANS = '"Whyte", system-ui, sans-serif'
 const NIGHT: [number, number, number] = [8, 10, 22]
 const STARLIGHT: [number, number, number] = [225, 232, 248]
-const GRATICULE_STEP = 30 // degrees between coordinate grid lines
-const GRATICULE_ALPHA = 0.18 // faintest layer — sits beneath the constellation lines
+const GRATICULE_STEP = 10 // degrees between coordinate grid lines
+const GRATICULE_ALPHA = 0.25 // faintest layer — sits beneath the constellation lines
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
