@@ -63,17 +63,18 @@ const LAYER_DEFS: { key: LayerKey; label: string }[] = [
   { key: 'starNames', label: 'star names (always)' },
   { key: 'starLabels', label: 'star names (hover)' },
 ]
-const ALL_ON: Record<LayerKey, boolean> = {
+const DEFAULT_LAYERS: Record<LayerKey, boolean> = {
   stars: true,
   graticule: true,
   ecliptic: true,
-  constellationLines: true,
-  labels: true,
-  indicators: true,
+  constellationLines: false,
+  labels: false,
+  indicators: false,
   starNames: true,
-  starLabels: true,
+  starLabels: false,
 }
-const SHOW_PANEL = import.meta.env.DEV
+// Dev tuning panel — hidden. Flip to `import.meta.env.DEV` to bring it back.
+const SHOW_PANEL = false
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -100,7 +101,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
   const closingRef = useRef(false)
   const [grabbing, setGrabbing] = useState(false)
 
-  const [layers, setLayers] = useState<Record<LayerKey, boolean>>(ALL_ON)
+  const [layers, setLayers] = useState<Record<LayerKey, boolean>>(DEFAULT_LAYERS)
   const layersRef = useRef(layers)
   useEffect(() => {
     layersRef.current = layers
