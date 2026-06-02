@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { projectOrthographic, type ViewRotation } from '../sky/projection'
-import { STARS, CONSTELLATIONS, starById, brightness } from '../sky/constellations'
-import { eclipticPoint, sphericalCentroid } from '../sky/lines'
+import { STARS, CONSTELLATIONS, brightness } from '../sky/constellations'
+import { eclipticPoint } from '../sky/lines'
 
 interface StarExplorerProps {
   /** the CelestialBox's on-screen rect — FLIP origin */
@@ -57,16 +57,8 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
   const closingRef = useRef(false)
   const [grabbing, setGrabbing] = useState(false)
 
-  // each constellation's mean direction on the sphere, for the edge indicators
-  const centroids = useMemo(
-    () =>
-      CONSTELLATIONS.map((c) => {
-        const ids = [...new Set(c.lines.flat())]
-        const coords = ids.map((id) => starById(id)).filter((s) => s !== undefined)
-        return { name: c.name, center: sphericalCentroid(coords) }
-      }),
-    [],
-  )
+  // each constellation's label anchor (baked into the data), for the edge indicators
+  const centroids = useMemo(() => CONSTELLATIONS.map((c) => ({ name: c.name, center: c.center })), [])
 
   const beginClose = useCallback(() => {
     closingRef.current = true
@@ -205,18 +197,20 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = lineReveal * 0.45
         ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`
         for (const c of CONSTELLATIONS) {
-          for (const [a, b] of c.lines) {
-            const pa = projectOrthographic(starById(a)!, view)
-            const pb = projectOrthographic(starById(b)!, view)
-            if (!pa.front || !pb.front) continue
-            const ax = cx + pa.x * radius
-            const ay = cy - pa.y * radius
-            const bx = cx + pb.x * radius
-            const by = cy - pb.y * radius
-            const steps = Math.max(1, Math.floor(Math.hypot(bx - ax, by - ay) / (charSize * 0.7)))
-            for (let i = 1; i < steps; i++) {
-              const t = i / steps
-              ctx.fillText('·', ax + (bx - ax) * t, ay + (by - ay) * t)
+          for (const path of c.paths) {
+            for (let v = 0; v + 1 < path.length; v++) {
+              const pa = projectOrthographic({ lon: path[v][0], lat: path[v][1] }, view)
+              const pb = projectOrthographic({ lon: path[v + 1][0], lat: path[v + 1][1] }, view)
+              if (!pa.front || !pb.front) continue
+              const ax = cx + pa.x * radius
+              const ay = cy - pa.y * radius
+              const bx = cx + pb.x * radius
+              const by = cy - pb.y * radius
+              const steps = Math.max(1, Math.floor(Math.hypot(bx - ax, by - ay) / (charSize * 0.7)))
+              for (let i = 1; i < steps; i++) {
+                const t = i / steps
+                ctx.fillText('·', ax + (bx - ax) * t, ay + (by - ay) * t)
+              }
             }
           }
         }
