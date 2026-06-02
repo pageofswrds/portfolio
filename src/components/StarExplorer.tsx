@@ -44,13 +44,21 @@ const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
 const INDICATOR_REACH = 1.1
 
 // Toggleable render layers (a dev-only panel flips these live).
-type LayerKey = 'stars' | 'graticule' | 'ecliptic' | 'constellationLines' | 'labels' | 'starLabels'
+type LayerKey =
+  | 'stars'
+  | 'graticule'
+  | 'ecliptic'
+  | 'constellationLines'
+  | 'labels'
+  | 'indicators'
+  | 'starLabels'
 const LAYER_DEFS: { key: LayerKey; label: string }[] = [
   { key: 'stars', label: 'stars' },
   { key: 'graticule', label: 'grid + equator' },
   { key: 'ecliptic', label: 'ecliptic' },
   { key: 'constellationLines', label: 'figures' },
-  { key: 'labels', label: 'labels + indicators' },
+  { key: 'labels', label: 'constellation labels' },
+  { key: 'indicators', label: 'edge indicators' },
   { key: 'starLabels', label: 'star names (hover)' },
 ]
 const ALL_ON: Record<LayerKey, boolean> = {
@@ -59,6 +67,7 @@ const ALL_ON: Record<LayerKey, boolean> = {
   ecliptic: true,
   constellationLines: true,
   labels: true,
+  indicators: true,
   starLabels: true,
 }
 const SHOW_PANEL = import.meta.env.DEV
@@ -318,7 +327,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       // sits on the figure; off-screen it pins to the edge with an arrow, so it
       // glides inward as a constellation pans in (no duplicate label + indicator).
       // Far-side ones hidden; edge indicators capped to the nearest few.
-      if (L.labels && p > 0.6) {
+      if ((L.labels || L.indicators) && p > 0.6) {
         const pad = 52
         const labelAlpha = Math.min(1, (p - 0.6) / 0.4)
         const maxDist = Math.hypot(W / 2, H / 2) * INDICATOR_REACH
@@ -332,14 +341,19 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
           if (!pr.front) continue // far side of the sky — hidden
           const sx = cx + pr.x * radius
           const sy = cy - pr.y * radius
+          const onScreen = sx >= pad && sx <= W - pad && sy >= pad && sy <= H - pad
 
-          if (sx >= pad && sx <= W - pad && sy >= pad && sy <= H - pad) {
+          if (onScreen) {
+            // on-figure constellation label
+            if (!L.labels) continue
             ctx.globalAlpha = labelAlpha
             ctx.textAlign = 'center'
             ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
             ctx.fillText(name, sx, sy - charSize * 1.6)
             ctx.globalAlpha = 1
           } else {
+            // edge indicator candidate (the arrow at the screen border)
+            if (!L.indicators) continue
             let dx = sx - W / 2
             let dy = sy - H / 2
             const len = Math.hypot(dx, dy)
