@@ -34,10 +34,18 @@ const ECLIPTIC_ALPHA = 0.18
 
 // Stars: brightness drives opacity (faint stars recede), glyph is fixed (no
 // blinking), with a gentle slow alpha shimmer instead of glyph-cycling.
-const STAR_MIN_ALPHA = 0.14 // faint-star floor
-const STAR_GAMMA = 2.4 // >1 pushes the midrange dimmer so the bright end pops (contrast)
-const STAR_SIZE_BOOST = 0.6 // bright stars get up to 1+boost x the glyph size (the "ceiling")
-const STAR_TWINKLE = 0.35 // alpha shimmer (per-star phase); most visible on bright stars
+// Live-tunable star rendering. Opacity uses a normalized sigmoid of brightness:
+// `mid` places the contrast band, `steep` sharpens it, `floor` is the faint base.
+type Tune = { floor: number; mid: number; steep: number; sizeBoost: number; twinkle: number }
+const DEFAULT_TUNE: Tune = { floor: 0.14, mid: 0.7, steep: 6, sizeBoost: 0.6, twinkle: 0.35 }
+const TUNE_CONTROLS: { key: keyof Tune; label: string; min: number; max: number; step: number }[] = [
+  { key: 'floor', label: 'floor', min: 0, max: 0.6, step: 0.01 },
+  { key: 'mid', label: 'band center', min: 0, max: 1, step: 0.02 },
+  { key: 'steep', label: 'steepness', min: 1, max: 20, step: 0.5 },
+  { key: 'sizeBoost', label: 'size boost', min: 0, max: 1.5, step: 0.05 },
+  { key: 'twinkle', label: 'twinkle', min: 0, max: 1, step: 0.02 },
+]
+const SHOW_TUNER = import.meta.env.DEV
 
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
 const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
@@ -108,6 +116,12 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
   useEffect(() => {
     layersRef.current = layers
   }, [layers])
+
+  const [tune, setTune] = useState<Tune>(DEFAULT_TUNE)
+  const tuneRef = useRef(tune)
+  useEffect(() => {
+    tuneRef.current = tune
+  }, [tune])
 
   // each constellation's label anchor (baked into the data), for the edge indicators
   const centroids = useMemo(() => CONSTELLATIONS.map((c) => ({ name: c.name, center: c.center })), [])
@@ -287,25 +301,29 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = 1
       }
 
-      // stars — real spectral color; opacity AND glyph size scale with brightness
-      // (gamma'd for contrast); gentle per-star twinkle. Size uses 4 cheap tiers so
-      // the brightest stars read bigger without a per-star font cost at 15k+ stars.
+      // stars — real spectral color; opacity + glyph size shaped by a tunable
+      // sigmoid of brightness (mid = contrast band, steep = sharpness); per-star
+      // twinkle. Size uses 4 cheap tiers so the brightest read bigger at 15k+ stars.
       if (L.stars) {
-        const fonts = [0, 1, 2, 3].map((t) => `${charSize * (1 + STAR_SIZE_BOOST * (t / 3))}px ${MONO}`)
+        const T = tuneRef.current
+        const sig = (x: number) => 1 / (1 + Math.exp(-T.steep * (x - T.mid)))
+        const s0 = sig(0)
+        const sden = sig(1) - s0 || 1
+        const fonts = [0, 1, 2, 3].map((t) => `${charSize * (1 + T.sizeBoost * (t / 3))}px ${MONO}`)
         let curTier = -1
         for (const s of STARS) {
           const pr = projectOrthographic(s, view)
           if (!pr.front) continue
           const b = brightness(s.mag)
-          const bg = Math.pow(b, STAR_GAMMA) // contrast curve
-          const tier = Math.round(bg * 3)
+          const shaped = Math.max(0, Math.min(1, (sig(b) - s0) / sden))
+          const tier = Math.round(shaped * 3)
           if (tier !== curTier) {
             ctx.font = fonts[tier]
             curTier = tier
           }
           // per-star phase so the field shimmers rather than pulsing in unison
-          const tw = 1 + STAR_TWINKLE * Math.sin(now * 0.0025 + s.lon * 0.7 + s.lat * 1.3)
-          ctx.globalAlpha = Math.min(1, (STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * bg) * tw)
+          const tw = 1 + T.twinkle * Math.sin(now * 0.0025 + s.lon * 0.7 + s.lat * 1.3)
+          ctx.globalAlpha = Math.min(1, (T.floor + (1 - T.floor) * shaped) * tw)
           ctx.fillStyle = s.color
           ctx.fillText(asciiChar(b), cx + pr.x * radius, cy - pr.y * radius)
         }
@@ -522,6 +540,47 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
                 onChange={(e) => setLayers((prev) => ({ ...prev, [d.key]: e.target.checked }))}
               />
               {d.label}
+            </label>
+          ))}
+        </div>
+      )}
+
+      {SHOW_TUNER && (
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: 12,
+            right: 12,
+            zIndex: 1001,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            width: 200,
+            padding: '10px 12px',
+            borderRadius: 8,
+            background: 'rgba(8, 10, 22, 0.7)',
+            border: '1px solid rgba(225, 232, 248, 0.15)',
+            font: `12px ${MONO}`,
+            color: 'rgba(225, 232, 248, 0.85)',
+            userSelect: 'none',
+          }}
+        >
+          <div style={{ opacity: 0.6, letterSpacing: 0.5 }}>STAR OPACITY</div>
+          {TUNE_CONTROLS.map((c) => (
+            <label key={c.key} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ opacity: 0.8 }}>
+                {c.label}: {tune[c.key].toFixed(2)}
+              </span>
+              <input
+                type="range"
+                min={c.min}
+                max={c.max}
+                step={c.step}
+                value={tune[c.key]}
+                onChange={(e) => setTune((prev) => ({ ...prev, [c.key]: parseFloat(e.target.value) }))}
+              />
             </label>
           ))}
         </div>
