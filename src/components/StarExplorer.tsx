@@ -353,7 +353,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
           const sy = cy - pr.y * radius
           const gsize = 12 + pl.size * 0.8
           // faint glow
-          ctx.globalAlpha = planetAlpha * 0.16
+          ctx.globalAlpha = planetAlpha * 0.06
           ctx.fillStyle = pl.color
           ctx.beginPath()
           ctx.arc(sx, sy, gsize * 0.62, 0, Math.PI * 2)
