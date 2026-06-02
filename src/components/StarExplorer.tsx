@@ -27,14 +27,14 @@ const STARLIGHT: [number, number, number] = [225, 232, 248]
 // Coordinate scaffolding is drawn as thin STROKES (not dots), so it reads as
 // structure distinct from the ASCII sky.
 const GRATICULE_STEP = 10 // degrees between grid lines
-const GRID_ALPHA = 0.09
+const GRID_ALPHA = 0.07
 const EQUATOR_ALPHA = 0.18
 const ECLIPTIC: [number, number, number] = [255, 198, 74] // vivid gold — the zodiac path
 const ECLIPTIC_ALPHA = 0.18
 
 // Stars: brightness drives opacity (faint stars recede), glyph is fixed (no
 // blinking), with a gentle slow alpha shimmer instead of glyph-cycling.
-const STAR_MIN_ALPHA = 0.12 // faint stars dim hard -> strong brightness contrast
+const STAR_MIN_ALPHA = 0.17 // faint-star floor
 const STAR_GAMMA = 1.7 // >1 pushes the midrange dimmer so the bright end pops
 const STAR_TWINKLE = 0.35 // alpha shimmer (per-star phase); most visible on bright stars
 
