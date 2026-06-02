@@ -16,9 +16,8 @@ const CLOSE_DRAG_THRESHOLD = 6 // px of total movement below which a release cou
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
-// Stars must each read as a SINGLE point — no ':'/'+'/'@' (those look like two
-// stars or a letter). Just a dot for the field; '*' for the brightest few.
-const DENSITY = [' ', '·', '·', '·', '*', '*']
+// Star glyph ramp, faint -> bright. Avoids ':' (reads as two stacked stars).
+const DENSITY = [' ', '·', '•', '+', '*', '@']
 const asciiChar = (w: number) => DENSITY[Math.round(Math.max(0, Math.min(1, w)) * (DENSITY.length - 1))]
 
 const MONO = '"Fraktion Mono", ui-monospace, monospace'
