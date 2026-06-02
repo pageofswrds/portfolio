@@ -23,6 +23,8 @@ const asciiChar = (w: number) => DENSITY[Math.round(Math.max(0, Math.min(1, w)) 
 
 const MONO = '"Fraktion Mono", ui-monospace, monospace'
 const SANS = '"Whyte", system-ui, sans-serif'
+// fonts that reliably carry the astrological planet glyphs (☉☽☿♀♂♃♄♅♆♇)
+const GLYPH_FONT = '"Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols2", system-ui, sans-serif'
 const NIGHT: [number, number, number] = [8, 10, 22]
 const STARLIGHT: [number, number, number] = [225, 232, 248]
 
@@ -339,32 +341,33 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = 1
       }
 
-      // planets — current geocentric positions, as colored discs riding the ecliptic
+      // planets — current geocentric positions as their astrological glyphs,
+      // colored, riding the ecliptic; a faint glow reads as luminosity
       if (L.planets && p > 0.6) {
         const planetAlpha = Math.min(1, (p - 0.6) / 0.4)
-        ctx.font = `12px ${SANS}`
-        ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
         for (const pl of planets) {
           const pr = projectOrthographic(pl, view)
           if (!pr.front) continue
           const sx = cx + pr.x * radius
           const sy = cy - pr.y * radius
-          // faint halo
-          ctx.globalAlpha = planetAlpha * 0.3
-          ctx.strokeStyle = pl.color
-          ctx.lineWidth = 1
-          ctx.beginPath()
-          ctx.arc(sx, sy, pl.size + 3, 0, Math.PI * 2)
-          ctx.stroke()
-          // disc
-          ctx.globalAlpha = planetAlpha
+          const gsize = 12 + pl.size * 0.8
+          // faint glow
+          ctx.globalAlpha = planetAlpha * 0.16
           ctx.fillStyle = pl.color
           ctx.beginPath()
-          ctx.arc(sx, sy, pl.size, 0, Math.PI * 2)
+          ctx.arc(sx, sy, gsize * 0.62, 0, Math.PI * 2)
           ctx.fill()
+          // glyph
+          ctx.globalAlpha = planetAlpha
+          ctx.fillStyle = pl.color
+          ctx.font = `${gsize}px ${GLYPH_FONT}`
+          ctx.textAlign = 'center'
+          ctx.fillText(pl.glyph, sx, sy)
           // label (℞ marks retrograde)
-          ctx.fillText(pl.retrograde ? `${pl.name} ℞` : pl.name, sx + pl.size + 6, sy)
+          ctx.font = `12px ${SANS}`
+          ctx.textAlign = 'left'
+          ctx.fillText(pl.retrograde ? `${pl.name} ℞` : pl.name, sx + gsize * 0.7, sy)
         }
         ctx.globalAlpha = 1
         ctx.textAlign = 'center'
