@@ -222,11 +222,13 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = lineReveal * GRID_ALPHA
         ctx.setLineDash([2, 5]) // grid lines are dashed
         ctx.beginPath()
-        for (let lat = -60; lat <= 60; lat += GRATICULE_STEP) {
+        // parallels up to ±80° — the high ones cap the converging meridians near the poles
+        for (let lat = -80; lat <= 80; lat += GRATICULE_STEP) {
           arc((i) => ({ lon: i * 3, lat }), 120)
         }
+        // meridians terminate exactly on the ±80° parallel
         for (let lon = 0; lon < 360; lon += GRATICULE_STEP) {
-          arc((i) => ({ lon, lat: -85 + i * 3 }), 56)
+          arc((i) => ({ lon, lat: -80 + i * 3.2 }), 50)
         }
         ctx.stroke()
         ctx.setLineDash([]) // equator (and everything after) stays solid
