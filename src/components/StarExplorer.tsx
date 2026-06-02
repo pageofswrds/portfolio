@@ -220,6 +220,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.strokeStyle = inkCool
         ctx.lineWidth = 1
         ctx.globalAlpha = lineReveal * GRID_ALPHA
+        ctx.setLineDash([2, 5]) // grid lines are dashed
         ctx.beginPath()
         for (let lat = -60; lat <= 60; lat += GRATICULE_STEP) {
           arc((i) => ({ lon: i * 3, lat }), 120)
@@ -228,6 +229,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
           arc((i) => ({ lon, lat: -85 + i * 3 }), 56)
         }
         ctx.stroke()
+        ctx.setLineDash([]) // equator (and everything after) stays solid
 
         // celestial equator, a touch brighter
         ctx.globalAlpha = lineReveal * EQUATOR_ALPHA
