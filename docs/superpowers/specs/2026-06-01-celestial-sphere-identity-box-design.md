@@ -57,25 +57,35 @@ honest payoff of "falling into the sphere": you entered a sphere, so you should 
 - Projection: gnomonic/stereographic from the current view direction (visible
   hemisphere projected to screen).
 
-### The reveal (≈600ms) — the craft crux
+### Medium — fully ASCII (decided 2026-06-01, post-v1)
+
+After seeing the v1, the medium decision is **fully ASCII throughout** (the "one
+unbroken voice" option), *not* the ASCII→rendered-stars "telescope focus" reveal.
+Rationale (David's call): the rendered-sky path has "the shape of a whole product"
+— real depth, data, navigation — and that complexity is out of scope for a
+portfolio hero. Fully-ASCII keeps it a *gesture*: coherent, one voice, finishable.
+It also *removes* complexity — no dual renderer, no media crossfade. The
+rendered-star path is parked as a possible future direction.
+
+### The reveal (≈600ms)
 
 1. Capture the box's screen rect on click (FLIP origin).
-2. An overlay sphere appears **exactly matching** the hover-sphere (seamless
-   handoff — same projection, same size, same position).
-3. Animate simultaneously:
-   - sphere scales up to fill the viewport;
-   - ASCII density-chars cross-fade **out** while rendered star-points fade **in**
-     *at the same projected positions*;
-   - the `·`/`:` background haze darkens to near-black;
-   - ASCII line-strokes straighten into thin vector constellation lines.
-4. Settle into the interactive explorer.
-5. Reverse on close: stars coarsen back to ASCII, sphere shrinks to the box rect.
+2. The overlay sphere appears matching the hover-sphere (same projection, size,
+   position — seamless handoff).
+3. Animate:
+   - sphere scales up (growing projected radius) to fill the viewport;
+   - the background darkens from transparent → deep blue-black (night falling
+     over the live page);
+   - chars stay ASCII the whole way; their color lerps from page-ink to starlight
+     as the background darkens;
+   - constellation `·` trails and names fade in once the sphere has grown.
+4. Settle into the interactive explorer (ASCII starfield, drag to rotate).
+5. Reverse on close: sphere shrinks back to the box rect, night lifts.
 
-**The risk and the discipline:** both the ASCII chars and the rendered stars must
-be driven by the **same projected coordinates** from the shared data module, so the
-transition reads as *sharpening into focus* rather than *one thing swapped for
-another*. If the two layers register against the same coords, the reveal works; if
-they don't, it feels like two stapled-together websites.
+**The discipline (still load-bearing):** every char is placed by the **same
+`projectOrthographic`** call against the shared data module. The box, the explorer,
+and every frame of the reveal read identical coordinates — so growth reads as one
+continuous sphere, never a swap.
 
 ### Sky content
 
@@ -99,7 +109,7 @@ Follows patterns already in the repo.
 |------|----------------|---------|
 | `src/sky/constellations.ts` | Single source of truth: star spherical-coords + magnitude, constellation line pairs, names. Consumed by **both** the hover sphere and the explorer. | (new) |
 | `CelestialBox` | Replaces the dashed `<rect>` at `src/App.tsx:197`. Lives in the SVG `foreignObject` like `AsciiFlowField`; carries `data-block-pan`; owns hover + click; renders the ASCII box & rotating sphere. | `AsciiFlowField.tsx` |
-| `StarExplorer` | Full-page overlay (portal), mounted outside the canvas SVG. Receives the box rect as FLIP origin. Sky drawn on a `<canvas>` for smooth twinkle + drag; constellation labels in an HTML layer. | `ProjectModal.tsx`, `BlogModal.tsx` |
+| `StarExplorer` | Full-page overlay, mounted outside the canvas SVG. Receives the box rect as FLIP origin. **Fully-ASCII** sky drawn on a `<canvas>` via `fillText` (only the ~40 stars + line samples are drawn, so the giant empty grid costs nothing); drag-to-rotate; night-darkening background. | `ProjectModal.tsx`, `BlogModal.tsx` |
 
 **Shared projection math** (project a star's spherical coord to screen given a view
 direction) lives in a small pure module so the sphere, the explorer, and the

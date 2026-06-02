@@ -21,6 +21,7 @@ const asciiChar = (w: number) => DENSITY[Math.round(Math.max(0, Math.min(1, w)) 
 const MONO = '"Fraktion Mono", ui-monospace, monospace'
 const SANS = '"Whyte", system-ui, sans-serif'
 const NIGHT: [number, number, number] = [8, 10, 22]
+const STARLIGHT: [number, number, number] = [225, 232, 248]
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -122,67 +123,62 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       ctx.fillStyle = `rgba(${NIGHT[0]}, ${NIGHT[1]}, ${NIGHT[2]}, ${p})`
       ctx.fillRect(0, 0, W, H)
 
-      const asciiAlpha = Math.max(0, 1 - p * 1.4) // chars fade out early
-      const starAlpha = Math.max(0, (p - 0.25) / 0.75) // points fade in after 25%
+      // Chars stay ASCII the whole way; their color lerps from page-ink (dark on
+      // the light page) to starlight (pale on the night) as the background darkens.
+      const cr = Math.round(lerp(charRGB[0], STARLIGHT[0], p))
+      const cg = Math.round(lerp(charRGB[1], STARLIGHT[1], p))
+      const cb = Math.round(lerp(charRGB[2], STARLIGHT[2], p))
+      const charSize = lerp(boxR / 10, 15, p) // ~box char size -> comfortable full-screen
+      ctx.font = `${charSize}px ${MONO}`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
 
-      // constellation lines
-      if (starAlpha > 0.01) {
-        ctx.strokeStyle = `rgba(150, 170, 210, ${0.35 * starAlpha})`
-        ctx.lineWidth = 1
+      // constellation lines as faint ASCII trails (fade in once the sphere has grown)
+      const lineReveal = Math.max(0, (p - 0.2) / 0.8)
+      if (lineReveal > 0.01) {
+        ctx.globalAlpha = lineReveal * 0.45
+        ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`
         for (const c of CONSTELLATIONS) {
           for (const [a, b] of c.lines) {
             const pa = projectOrthographic(starById(a)!, view)
             const pb = projectOrthographic(starById(b)!, view)
             if (!pa.front || !pb.front) continue
-            ctx.beginPath()
-            ctx.moveTo(cx + pa.x * radius, cy - pa.y * radius)
-            ctx.lineTo(cx + pb.x * radius, cy - pb.y * radius)
-            ctx.stroke()
+            const ax = cx + pa.x * radius
+            const ay = cy - pa.y * radius
+            const bx = cx + pb.x * radius
+            const by = cy - pb.y * radius
+            const steps = Math.max(1, Math.floor(Math.hypot(bx - ax, by - ay) / (charSize * 0.7)))
+            for (let i = 1; i < steps; i++) {
+              const t = i / steps
+              ctx.fillText('·', ax + (bx - ax) * t, ay + (by - ay) * t)
+            }
           }
         }
+        ctx.globalAlpha = 1
       }
 
-      // stars: ASCII fading out + rendered points fading in, same projected coords
-      const asciiSize = Math.max(8, boxR / 5)
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
+      // stars as density chars; twinkle by cycling the glyph up/down the ramp
+      ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`
       for (const s of STARS) {
         const pr = projectOrthographic(s, view)
         if (!pr.front) continue
-        const sx = cx + pr.x * radius
-        const sy = cy - pr.y * radius
         const b = brightness(s.mag)
-
-        if (asciiAlpha > 0.01) {
-          ctx.globalAlpha = asciiAlpha
-          ctx.fillStyle = `rgb(${charRGB[0]}, ${charRGB[1]}, ${charRGB[2]})`
-          ctx.font = `${asciiSize}px ${MONO}`
-          ctx.fillText(asciiChar(b), sx, sy)
-        }
-        if (starAlpha > 0.01) {
-          const tw = 0.75 + 0.25 * Math.sin(now / 600 + s.lon)
-          const r = (1.2 + b * 2.8) * tw
-          ctx.globalAlpha = starAlpha * (0.55 + 0.45 * b)
-          ctx.beginPath()
-          ctx.arc(sx, sy, r, 0, Math.PI * 2)
-          ctx.fillStyle = `hsl(${lerp(210, 48, b)}, 70%, ${lerp(72, 92, b)}%)`
-          ctx.fill()
-        }
+        const tw = 0.14 * Math.sin(now / 500 + s.lon)
+        ctx.fillText(asciiChar(b + tw), cx + pr.x * radius, cy - pr.y * radius)
       }
 
-      // constellation labels, once mostly revealed
-      if (starAlpha > 0.5) {
-        ctx.globalAlpha = (starAlpha - 0.5) / 0.5
-        ctx.fillStyle = 'rgba(190, 202, 230, 0.85)'
+      // constellation labels (mono-spirit text), once mostly revealed
+      if (p > 0.6) {
+        ctx.globalAlpha = (p - 0.6) / 0.4
+        ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
         ctx.font = `13px ${SANS}`
         for (const c of CONSTELLATIONS) {
           const pr = projectOrthographic(starById(c.labelStar)!, view)
           if (!pr.front) continue
-          ctx.fillText(c.name, cx + pr.x * radius, cy - pr.y * radius - 18)
+          ctx.fillText(c.name, cx + pr.x * radius, cy - pr.y * radius - charSize * 1.6)
         }
+        ctx.globalAlpha = 1
       }
-
-      ctx.globalAlpha = 1
       raf = requestAnimationFrame(draw)
     }
     raf = requestAnimationFrame(draw)
