@@ -28,9 +28,9 @@ const STARLIGHT: [number, number, number] = [225, 232, 248]
 // structure distinct from the ASCII sky.
 const GRATICULE_STEP = 10 // degrees between grid lines
 const GRID_ALPHA = 0.09
-const EQUATOR_ALPHA = 0.3
+const EQUATOR_ALPHA = 0.18
 const ECLIPTIC: [number, number, number] = [255, 198, 74] // vivid gold — the zodiac path
-const ECLIPTIC_ALPHA = 0.6
+const ECLIPTIC_ALPHA = 0.4
 
 // Stars: brightness drives opacity (faint stars recede), glyph is fixed (no
 // blinking), with a gentle slow alpha shimmer instead of glyph-cycling.
