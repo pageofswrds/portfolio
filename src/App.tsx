@@ -5,9 +5,12 @@ import { ZoomControls } from './components/ZoomControls'
 import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
 import { BlogModal } from './components/BlogModal'
+import { CelestialBox } from './components/CelestialBox'
+import { StarExplorer } from './components/StarExplorer'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
 import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
+import type { ViewRotation } from './sky/projection'
 
 const FOCAL_X = 0
 const FOCAL_Y = 0
@@ -158,6 +161,7 @@ function App() {
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
   const [activeRoot, setActiveRoot] = useState<RootId>('product')
+  const [explorer, setExplorer] = useState<{ rect: DOMRect; view: ViewRotation } | null>(null)
 
   const activeChain = (() => {
     if (activeRoot === 'about') return null
@@ -194,16 +198,12 @@ function App() {
       <Canvas onZoomChange={setZoomScale}>
         {/* Identity zone — centered on focal point */}
         <g transform={`translate(${FOCAL_X}, ${FOCAL_Y})`}>
-          <rect
+          <CelestialBox
             x={-(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200)}
             y={-IDENTITY_ANCHOR_SIZE / 2}
-            width={IDENTITY_ANCHOR_SIZE}
-            height={IDENTITY_ANCHOR_SIZE}
-            rx="12"
-            fill="var(--bg-card)"
-            stroke="var(--bd-primary)"
-            strokeWidth="1"
-            strokeDasharray="4 4"
+            size={IDENTITY_ANCHOR_SIZE}
+            paused={explorer !== null}
+            onOpen={(rect, view) => setExplorer({ rect, view })}
           />
 
           <text
@@ -400,6 +400,14 @@ function App() {
         post={selectedBlogPost}
         onClose={() => setSelectedBlogPost(null)}
       />
+
+      {explorer && (
+        <StarExplorer
+          originRect={explorer.rect}
+          originView={explorer.view}
+          onClose={() => setExplorer(null)}
+        />
+      )}
     </>
   )
 }
