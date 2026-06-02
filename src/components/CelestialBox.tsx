@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { projectOrthographic, type ViewRotation } from '../sky/projection'
-import { STARS, brightness } from '../sky/constellations'
+import { BRIGHT_STARS } from '../sky/sky.bright'
 import { rasterize, type AsciiPoint } from '../sky/ascii'
+
+// Local brightness over the bright-star range, so the box doesn't import the
+// full catalog (keeps the heavy data in the lazily-loaded explorer chunk).
+const BRIGHT_MIN = -1.5
+const BRIGHT_MAX = 2.8
+const boxWeight = (mag: number) => Math.max(0, Math.min(1, (BRIGHT_MAX - mag) / (BRIGHT_MAX - BRIGHT_MIN)))
 
 interface CelestialBoxProps {
   /** top-left in canvas (SVG) space */
@@ -21,7 +27,6 @@ const ROWS = 20
 const VIEW_LAT = 12
 const REST_SPEED = 3 // deg/sec
 const HOVER_SPEED = 14
-const BOX_MAG_LIMIT = 2.8 // only bright stars in the tiny box, so it reads as a sparse orb
 
 export function CelestialBox({ x, y, size, paused = false, onOpen }: CelestialBoxProps) {
   const [lon, setLon] = useState(20)
@@ -46,10 +51,9 @@ export function CelestialBox({ x, y, size, paused = false, onOpen }: CelestialBo
   }, [paused])
 
   const points: AsciiPoint[] = []
-  for (const s of STARS) {
-    if (s.mag > BOX_MAG_LIMIT) continue
+  for (const s of BRIGHT_STARS) {
     const p = projectOrthographic(s, { lon, lat: VIEW_LAT })
-    if (p.front) points.push({ x: p.x, y: p.y, weight: brightness(s.mag) })
+    if (p.front) points.push({ x: p.x, y: p.y, weight: boxWeight(s.mag) })
   }
   const grid = rasterize(points, COLS, ROWS).join('\n')
 
