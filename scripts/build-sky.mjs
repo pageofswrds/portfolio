@@ -12,7 +12,36 @@ const here = dirname(fileURLToPath(import.meta.url))
 const dataDir = join(here, '..', 'data', 'd3-celestial')
 const outFile = join(here, '..', 'src', 'sky', 'sky.generated.ts')
 
-const MAG_CUTOFF = 6.0
+const MAG_CUTOFF = 6.5
+const STARS_FILE = 'stars.8.json' // deep catalog (to mag 8); we filter below
+
+// Approximate a star's RGB color from its B-V color index (blue -> white -> red).
+function bvToRGB(bvRaw) {
+  const anchors = [
+    [-0.4, [155, 176, 255]],
+    [-0.2, [170, 191, 255]],
+    [0.0, [202, 216, 255]],
+    [0.2, [248, 247, 255]],
+    [0.4, [255, 250, 232]],
+    [0.6, [255, 244, 214]],
+    [0.8, [255, 230, 190]],
+    [1.2, [255, 210, 160]],
+    [1.6, [255, 185, 130]],
+    [2.0, [255, 165, 110]],
+  ]
+  let v = parseFloat(bvRaw)
+  if (!Number.isFinite(v)) v = 0.6
+  v = Math.max(-0.4, Math.min(2.0, v))
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const [b0, c0] = anchors[i]
+    const [b1, c1] = anchors[i + 1]
+    if (v <= b1) {
+      const t = (v - b0) / (b1 - b0)
+      return [0, 1, 2].map((k) => Math.round(c0[k] + (c1[k] - c0[k]) * t))
+    }
+  }
+  return anchors[anchors.length - 1][1]
+}
 
 // Curated proper names for notable stars, keyed by Hipparcos id. Only these get
 // hover labels — deliberately a recognizable handful, not 1,600 designations.
@@ -51,7 +80,7 @@ function centroid(coords) {
   return { lon: r3(lon), lat: r3(lat) }
 }
 
-const starsRaw = JSON.parse(readFileSync(join(dataDir, 'stars.6.json'), 'utf8')).features
+const starsRaw = JSON.parse(readFileSync(join(dataDir, STARS_FILE), 'utf8')).features
 const linesRaw = JSON.parse(readFileSync(join(dataDir, 'constellations.lines.json'), 'utf8')).features
 const conRaw = JSON.parse(readFileSync(join(dataDir, 'constellations.json'), 'utf8')).features
 
@@ -62,7 +91,14 @@ const stars = starsRaw
   .filter((f) => f.properties.mag <= MAG_CUTOFF)
   .map((f) => {
     const [ra, dec] = f.geometry.coordinates
-    const s = { id: `hip${f.id}`, lon: r3(normLon(ra)), lat: r3(dec), mag: r2(f.properties.mag) }
+    const [r, g, b] = bvToRGB(f.properties.bv)
+    const s = {
+      id: `hip${f.id}`,
+      lon: r3(normLon(ra)),
+      lat: r3(dec),
+      mag: r2(f.properties.mag),
+      color: `rgb(${r}, ${g}, ${b})`,
+    }
     if (NAMES[f.id]) s.name = NAMES[f.id]
     return s
   })

@@ -35,7 +35,7 @@ const ECLIPTIC_ALPHA = 0.4
 // Stars: brightness drives opacity (faint stars recede), glyph is fixed (no
 // blinking), with a gentle slow alpha shimmer instead of glyph-cycling.
 const STAR_MIN_ALPHA = 0.25
-const STAR_TWINKLE = 0.06
+const STAR_TWINKLE = 0.18 // gentle alpha shimmer (per-star phase), not glyph-cycling
 
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
 const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
@@ -282,16 +282,17 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = 1
       }
 
-      // stars — fixed glyph, opacity by magnitude, gentle slow alpha shimmer
+      // stars — fixed glyph; real spectral color; opacity by magnitude; gentle twinkle
       if (L.stars) {
-        ctx.fillStyle = inkCool
         ctx.font = `${charSize}px ${MONO}`
         for (const s of STARS) {
           const pr = projectOrthographic(s, view)
           if (!pr.front) continue
           const b = brightness(s.mag)
-          const shimmer = 1 + STAR_TWINKLE * Math.sin(now / 900 + s.lon * 3)
-          ctx.globalAlpha = Math.min(1, (STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * b) * shimmer)
+          // per-star phase so the field shimmers rather than pulsing in unison
+          const tw = 1 + STAR_TWINKLE * Math.sin(now * 0.002 + s.lon * 0.7 + s.lat * 1.3)
+          ctx.globalAlpha = Math.min(1, (STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * b) * tw)
+          ctx.fillStyle = s.color
           ctx.fillText(asciiChar(b), cx + pr.x * radius, cy - pr.y * radius)
         }
         ctx.globalAlpha = 1

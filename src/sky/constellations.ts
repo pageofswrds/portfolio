@@ -3,7 +3,9 @@ import { STARS as GEN_STARS, CONSTELLATIONS as GEN_CONSTELLATIONS } from './sky.
 
 export interface Star extends SkyCoord {
   id: string
-  mag: number // brightest near -1.5 (Sirius) .. 5.0 (catalog cutoff)
+  mag: number // brightest near -1.5 (Sirius) .. catalog cutoff
+  /** spectral color from B-V index (precomputed), e.g. "rgb(202, 216, 255)" */
+  color: string
   /** proper name, shown as a hover label (only set for notable stars) */
   name?: string
 }
