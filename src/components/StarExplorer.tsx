@@ -26,6 +26,7 @@ const STARLIGHT: [number, number, number] = [225, 232, 248]
 const GRATICULE_STEP = 10 // degrees between coordinate grid lines
 const GRATICULE_ALPHA = 0.18 // faintest layer — sits beneath the constellation lines
 const ECLIPTIC: [number, number, number] = [222, 184, 96] // warm gold — the zodiac path
+const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -46,6 +47,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
   const viewRef = useRef<ViewRotation>({ lon: originView.lon, lat: originView.lat })
   const velRef = useRef({ lon: 0, lat: 0 })
   const dragRef = useRef<{ x: number; y: number } | null>(null)
+  const hoverRef = useRef<{ x: number; y: number } | null>(null)
   const movedRef = useRef(0)
   const progressRef = useRef(0)
   const closingRef = useRef(false)
@@ -216,6 +218,39 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.fillText(asciiChar(b + tw), cx + pr.x * radius, cy - pr.y * radius)
       }
 
+      // hover label: name the nearest named star under the cursor (once revealed)
+      if (p > 0.9 && hoverRef.current) {
+        const hx = hoverRef.current.x
+        const hy = hoverRef.current.y
+        let best: { name: string; sx: number; sy: number } | null = null
+        let bestD = STAR_HOVER_RADIUS
+        for (const s of STARS) {
+          if (!s.name) continue
+          const pr = projectOrthographic(s, view)
+          if (!pr.front) continue
+          const sx = cx + pr.x * radius
+          const sy = cy - pr.y * radius
+          const d = Math.hypot(sx - hx, sy - hy)
+          if (d < bestD) {
+            bestD = d
+            best = { name: s.name, sx, sy }
+          }
+        }
+        if (best) {
+          ctx.globalAlpha = 1
+          ctx.strokeStyle = `rgba(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]}, 0.8)`
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.arc(best.sx, best.sy, 7, 0, Math.PI * 2)
+          ctx.stroke()
+          ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
+          ctx.font = `13px ${SANS}`
+          ctx.textAlign = 'left'
+          ctx.fillText(best.name, best.sx + 11, best.sy - 9)
+          ctx.textAlign = 'center'
+        }
+      }
+
       // constellation labels (mono-spirit text), once mostly revealed
       if (p > 0.6) {
         ctx.globalAlpha = (p - 0.6) / 0.4
@@ -246,6 +281,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
     setGrabbing(true)
   }
   const onPointerMove = (e: React.PointerEvent) => {
+    hoverRef.current = { x: e.clientX, y: e.clientY }
     if (!dragRef.current) return
     const dx = e.clientX - dragRef.current.x
     const dy = e.clientY - dragRef.current.y
@@ -266,6 +302,9 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerLeave={() => {
+        hoverRef.current = null
+      }}
       onClick={() => {
         if (movedRef.current < CLOSE_DRAG_THRESHOLD) beginClose()
       }}
