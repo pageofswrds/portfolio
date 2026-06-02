@@ -11,9 +11,9 @@ describe('projectOrthographic', () => {
     expect(p.front).toBe(true)
   })
 
-  it('projects +90deg longitude on the equator to the right limb', () => {
+  it('projects +90deg longitude to the LEFT limb (inside-the-dome: RA increases left)', () => {
     const p = projectOrthographic({ lon: 90, lat: 0 }, center)
-    expect(p.x).toBeCloseTo(1, 6)
+    expect(p.x).toBeCloseTo(-1, 6)
     expect(p.y).toBeCloseTo(0, 6)
     expect(p.front).toBe(true) // on the limb (cosc == 0) counts as front
   })

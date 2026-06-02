@@ -361,9 +361,11 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
     movedRef.current += Math.abs(dx) + Math.abs(dy)
     dragRef.current = { x: e.clientX, y: e.clientY }
     const k = 0.2 // deg per px
-    viewRef.current.lon -= dx * k
+    // lon sign matches the mirrored (inside-the-dome) projection so dragging right
+    // still carries the sky right (grab-and-pull), not the other way.
+    viewRef.current.lon += dx * k
     viewRef.current.lat = Math.max(-85, Math.min(85, viewRef.current.lat + dy * k))
-    velRef.current = { lon: -dx * k * 8, lat: dy * k * 8 }
+    velRef.current = { lon: dx * k * 8, lat: dy * k * 8 }
   }
   const onPointerUp = () => {
     dragRef.current = null
