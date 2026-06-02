@@ -24,13 +24,18 @@ const DEG = Math.PI / 180
 const FRONT_EPS = 1e-9
 
 /**
- * Standard orthographic projection of a point on the unit sphere, viewed with
- * the sphere rotated so `view` sits at screen-center. y is screen-up positive.
+ * Orthographic projection of a point on the unit sphere, viewed with the sphere
+ * rotated so `view` sits at screen-center. y is screen-up positive.
+ *
+ * INSIDE-THE-DOME convention: we are inside the celestial sphere looking out (the
+ * naked-eye view), NOT looking at a globe from outside. That means east-west is
+ * mirrored vs. the textbook orthographic — longitude/RA increases to the LEFT
+ * (hence the `-` on x). Without this flip every constellation renders as its
+ * mirror image (Orion's belt and the Dipper's handle reversed).
  *
  * This single projection serves the hover sphere, the full-page explorer, and
  * the expand transition — at different pixel radii. Because all three read the
- * same coordinates, the ASCII chars and the rendered star-points register
- * exactly, which is what lets the reveal read as focus rather than swap.
+ * same coordinates, the ASCII chars register exactly across the reveal.
  */
 export function projectOrthographic(coord: SkyCoord, view: ViewRotation): Projected {
   const lat = coord.lat * DEG
@@ -38,7 +43,7 @@ export function projectOrthographic(coord: SkyCoord, view: ViewRotation): Projec
   const dLon = (coord.lon - view.lon) * DEG
 
   const cosLat = Math.cos(lat)
-  const x = cosLat * Math.sin(dLon)
+  const x = -cosLat * Math.sin(dLon) // inside-the-dome: RA increases to the left
   const y = Math.cos(lat0) * Math.sin(lat) - Math.sin(lat0) * cosLat * Math.cos(dLon)
   const cosc = Math.sin(lat0) * Math.sin(lat) + Math.cos(lat0) * cosLat * Math.cos(dLon)
 
