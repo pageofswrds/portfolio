@@ -8,6 +8,8 @@ interface CelestialBoxProps {
   x: number
   y: number
   size: number
+  /** when true, rotation freezes (the explorer is open and owns the view) */
+  paused?: boolean
   /** called with the box's on-screen rect + current rotation when clicked */
   onOpen: (rect: DOMRect, view: ViewRotation) => void
 }
@@ -20,7 +22,7 @@ const VIEW_LAT = 12
 const REST_SPEED = 3 // deg/sec
 const HOVER_SPEED = 14
 
-export function CelestialBox({ x, y, size, onOpen }: CelestialBoxProps) {
+export function CelestialBox({ x, y, size, paused = false, onOpen }: CelestialBoxProps) {
   const [lon, setLon] = useState(20)
   const [hovered, setHovered] = useState(false)
   // Rotation speed lives in a ref set by the mouse handlers (not during render),
@@ -29,6 +31,7 @@ export function CelestialBox({ x, y, size, onOpen }: CelestialBoxProps) {
   const boxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (paused) return
     let raf = 0
     let last = performance.now()
     const tick = (now: number) => {
@@ -39,7 +42,7 @@ export function CelestialBox({ x, y, size, onOpen }: CelestialBoxProps) {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [paused])
 
   const points: AsciiPoint[] = []
   for (const s of STARS) {

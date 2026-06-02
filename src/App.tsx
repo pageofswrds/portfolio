@@ -202,6 +202,7 @@ function App() {
             x={-(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200)}
             y={-IDENTITY_ANCHOR_SIZE / 2}
             size={IDENTITY_ANCHOR_SIZE}
+            paused={explorer !== null}
             onOpen={(rect, view) => setExplorer({ rect, view })}
           />
 
