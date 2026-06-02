@@ -25,8 +25,9 @@ const NIGHT: [number, number, number] = [8, 10, 22]
 const STARLIGHT: [number, number, number] = [225, 232, 248]
 const GRATICULE_STEP = 10 // degrees between coordinate grid lines
 const GRATICULE_ALPHA = 0.18 // faintest layer — sits beneath the constellation lines
-const ECLIPTIC: [number, number, number] = [222, 184, 96] // warm gold — the zodiac path
+const ECLIPTIC: [number, number, number] = [255, 198, 74] // vivid gold — the zodiac path
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
+const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -185,11 +186,11 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = 1
       }
 
-      // ecliptic — the zodiac path, in warm gold to read against the cool grid
+      // ecliptic — the zodiac path: denser dots, vivid gold, brighter than the grid
       if (lineReveal > 0.01) {
-        ctx.globalAlpha = lineReveal * 0.5
+        ctx.globalAlpha = lineReveal * 0.7
         ctx.fillStyle = `rgb(${ECLIPTIC[0]}, ${ECLIPTIC[1]}, ${ECLIPTIC[2]})`
-        for (let lam = 0; lam < 360; lam += 1.5) {
+        for (let lam = 0; lam < 360; lam += 0.8) {
           const pr = projectOrthographic(eclipticPoint(lam), view)
           if (pr.front) ctx.fillText('·', cx + pr.x * radius, cy - pr.y * radius)
         }
@@ -262,64 +263,67 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         }
       }
 
-      // constellation labels (mono-spirit text), once mostly revealed
+      // Constellation labels — ONE per constellation. Position = the figure's
+      // centroid projected to screen, clamped to the padded viewport. On-screen it
+      // sits on the figure; off-screen it pins to the edge with an arrow. So a
+      // constellation panning into view glides inward as one continuous label —
+      // no duplicate "in-view label + edge indicator". Far-side ones are hidden,
+      // and edge indicators are capped to the nearest few to keep borders clean.
       if (p > 0.6) {
-        ctx.globalAlpha = (p - 0.6) / 0.4
-        ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
-        ctx.font = `13px ${SANS}`
-        for (const c of CONSTELLATIONS) {
-          const pr = projectOrthographic(starById(c.labelStar)!, view)
-          if (!pr.front) continue
-          ctx.fillText(c.name, cx + pr.x * radius, cy - pr.y * radius - charSize * 1.6)
-        }
-        ctx.globalAlpha = 1
-      }
-
-      // off-screen indicators: edge bubbles pointing at near-side constellations
-      // that are just outside the viewport (pan a little and they arrive).
-      if (p > 0.95) {
         const pad = 52
-        ctx.font = `12px ${SANS}`
+        const labelAlpha = Math.min(1, (p - 0.6) / 0.4)
+        ctx.font = `13px ${SANS}`
         ctx.textBaseline = 'middle'
+
+        const edges: { name: string; ex: number; ey: number; dx: number; dy: number; dist: number }[] = []
+
         for (const { name, center } of centroids) {
           const pr = projectOrthographic(center, view)
-          if (!pr.front) continue // far side of the sky — let it vanish over the limb
+          if (!pr.front) continue // far side of the sky — hidden
           const sx = cx + pr.x * radius
           const sy = cy - pr.y * radius
-          if (sx >= pad && sx <= W - pad && sy >= pad && sy <= H - pad) continue // visible
 
-          // direction from viewport center to the target
-          let dx = sx - W / 2
-          let dy = sy - H / 2
-          const len = Math.hypot(dx, dy)
-          if (len < 1) continue
-          dx /= len
-          dy /= len
+          if (sx >= pad && sx <= W - pad && sy >= pad && sy <= H - pad) {
+            // visible: label sits on the figure
+            ctx.globalAlpha = labelAlpha
+            ctx.textAlign = 'center'
+            ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
+            ctx.fillText(name, sx, sy - charSize * 1.6)
+            ctx.globalAlpha = 1
+          } else {
+            // off-screen: collect as an edge candidate
+            let dx = sx - W / 2
+            let dy = sy - H / 2
+            const len = Math.hypot(dx, dy)
+            if (len < 1) continue
+            dx /= len
+            dy /= len
+            const t = Math.min((W / 2 - pad) / Math.abs(dx || 1e-6), (H / 2 - pad) / Math.abs(dy || 1e-6))
+            edges.push({ name, ex: W / 2 + dx * t, ey: H / 2 + dy * t, dx, dy, dist: len })
+          }
+        }
 
-          // intersect that ray with the padded viewport rectangle
-          const t = Math.min((W / 2 - pad) / Math.abs(dx || 1e-6), (H / 2 - pad) / Math.abs(dy || 1e-6))
-          const ex = W / 2 + dx * t
-          const ey = H / 2 + dy * t
-
-          // label, pulled inward from the edge, with a small backing for legibility
-          const tw = ctx.measureText(name).width
-          const tx = ex - dx * 16
-          const ty = ey - dy * 16
-          ctx.textAlign = dx > 0 ? 'right' : 'left'
-          const bx = dx > 0 ? tx - tw : tx
-          ctx.globalAlpha = 0.85
+        // only the nearest few edge indicators
+        edges.sort((a, b) => a.dist - b.dist)
+        for (const e of edges.slice(0, MAX_INDICATORS)) {
+          const tw = ctx.measureText(e.name).width
+          const tx = e.ex - e.dx * 16
+          const ty = e.ey - e.dy * 16
+          ctx.textAlign = e.dx > 0 ? 'right' : 'left'
+          const bx = e.dx > 0 ? tx - tw : tx
+          ctx.globalAlpha = labelAlpha * 0.85
           ctx.fillStyle = 'rgba(8, 10, 22, 0.6)'
           ctx.fillRect(bx - 4, ty - 9, tw + 8, 18)
           ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
-          ctx.fillText(name, tx, ty)
+          ctx.fillText(e.name, tx, ty)
 
           // arrowhead at the edge, pointing outward
-          const px = -dy
-          const py = dx
+          const px = -e.dy
+          const py = e.dx
           ctx.beginPath()
-          ctx.moveTo(ex + dx * 9, ey + dy * 9)
-          ctx.lineTo(ex + px * 4, ey + py * 4)
-          ctx.lineTo(ex - px * 4, ey - py * 4)
+          ctx.moveTo(e.ex + e.dx * 9, e.ey + e.dy * 9)
+          ctx.lineTo(e.ex + px * 4, e.ey + py * 4)
+          ctx.lineTo(e.ex - px * 4, e.ey - py * 4)
           ctx.closePath()
           ctx.fill()
           ctx.globalAlpha = 1
