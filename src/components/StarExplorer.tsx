@@ -22,6 +22,8 @@ const MONO = '"Fraktion Mono", ui-monospace, monospace'
 const SANS = '"Whyte", system-ui, sans-serif'
 const NIGHT: [number, number, number] = [8, 10, 22]
 const STARLIGHT: [number, number, number] = [225, 232, 248]
+const GRATICULE_STEP = 30 // degrees between coordinate grid lines
+const GRATICULE_ALPHA = 0.18 // faintest layer — sits beneath the constellation lines
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -133,8 +135,31 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
-      // constellation lines as faint ASCII trails (fade in once the sphere has grown)
+      // reference linework fades in once the sphere has grown
       const lineReveal = Math.max(0, (p - 0.2) / 0.8)
+
+      // faint coordinate graticule — the celestial grid, for orientation while panning.
+      // Sampled every 2deg along each line and front-culled, so the far hemisphere's
+      // lines never bleed through.
+      if (lineReveal > 0.01) {
+        ctx.globalAlpha = lineReveal * GRATICULE_ALPHA
+        ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`
+        for (let lat = -60; lat <= 60; lat += GRATICULE_STEP) {
+          for (let lon = 0; lon < 360; lon += 2) {
+            const pr = projectOrthographic({ lon, lat }, view)
+            if (pr.front) ctx.fillText('·', cx + pr.x * radius, cy - pr.y * radius)
+          }
+        }
+        for (let lon = 0; lon < 360; lon += GRATICULE_STEP) {
+          for (let lat = -80; lat <= 80; lat += 2) {
+            const pr = projectOrthographic({ lon, lat }, view)
+            if (pr.front) ctx.fillText('·', cx + pr.x * radius, cy - pr.y * radius)
+          }
+        }
+        ctx.globalAlpha = 1
+      }
+
+      // constellation lines as brighter ASCII trails, on top of the graticule
       if (lineReveal > 0.01) {
         ctx.globalAlpha = lineReveal * 0.45
         ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`
