@@ -17,7 +17,7 @@ const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2,
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
 // Star glyph ramp, faint -> bright. Avoids ':' (reads as two stacked stars).
-const DENSITY = [' ', '·', '•', '+', '*', '@']
+const DENSITY = [' ', '·', '·', '+', '*', '@']
 const asciiChar = (w: number) => DENSITY[Math.round(Math.max(0, Math.min(1, w)) * (DENSITY.length - 1))]
 
 const MONO = '"Fraktion Mono", ui-monospace, monospace'
