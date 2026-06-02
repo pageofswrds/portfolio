@@ -50,8 +50,8 @@ const TUNE_CONTROLS: { key: keyof Tune; label: string; min: number; max: number;
   { key: 'sizeBoost', label: 'size boost', min: 0, max: 1.5, step: 0.05 },
   { key: 'twinkle', label: 'twinkle', min: 0, max: 1, step: 0.02 },
 ]
-// Star-opacity tuner — hidden. Flip to `import.meta.env.DEV` to bring it back.
-const SHOW_TUNER = false
+// Star-opacity tuner — dev-only (never ships to prod).
+const SHOW_TUNER = import.meta.env.DEV
 
 const STAR_HOVER_RADIUS = 18 // px — how close the cursor must be to label a star
 const MAX_INDICATORS = 4 // most edge indicators shown at once (nearest win)
