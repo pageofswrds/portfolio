@@ -42,7 +42,7 @@ const ECLIPTIC_ALPHA = 0.18
 // Live-tunable star rendering. Opacity uses a normalized sigmoid of brightness:
 // `mid` places the contrast band, `steep` sharpens it, `floor` is the faint base.
 type Tune = { floor: number; mid: number; steep: number; sizeBoost: number; twinkle: number }
-const DEFAULT_TUNE: Tune = { floor: 0.07, mid: 0.34, steep: 15, sizeBoost: 0.3, twinkle: 0.5 }
+const DEFAULT_TUNE: Tune = { floor: 0.07, mid: 0.4, steep: 15, sizeBoost: 0.2, twinkle: 0.5 }
 const TUNE_CONTROLS: { key: keyof Tune; label: string; min: number; max: number; step: number }[] = [
   { key: 'floor', label: 'floor', min: 0, max: 0.6, step: 0.01 },
   { key: 'mid', label: 'band center', min: 0, max: 1, step: 0.02 },

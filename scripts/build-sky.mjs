@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const dataDir = join(here, '..', 'data', 'd3-celestial')
 const outFile = join(here, '..', 'src', 'sky', 'sky.generated.ts')
 
-const MAG_CUTOFF = 8.0
+const MAG_CUTOFF = 7.5
 const BOX_MAG = 2.8 // the hover box only needs bright stars — kept in a tiny separate file
 const STARS_FILE = 'stars.8.json' // deep catalog (to mag 8); we filter below
 
