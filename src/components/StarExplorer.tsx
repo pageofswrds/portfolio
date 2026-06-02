@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { projectOrthographic, type ViewRotation } from '../sky/projection'
 import { STARS, CONSTELLATIONS, starById, brightness } from '../sky/constellations'
+import { eclipticPoint } from '../sky/lines'
 
 interface StarExplorerProps {
   /** the CelestialBox's on-screen rect — FLIP origin */
@@ -24,6 +25,7 @@ const NIGHT: [number, number, number] = [8, 10, 22]
 const STARLIGHT: [number, number, number] = [225, 232, 248]
 const GRATICULE_STEP = 10 // degrees between coordinate grid lines
 const GRATICULE_ALPHA = 0.18 // faintest layer — sits beneath the constellation lines
+const ECLIPTIC: [number, number, number] = [222, 184, 96] // warm gold — the zodiac path
 
 /** Resolve a CSS custom property to an [r,g,b] triple (canvas can't read var()). */
 function resolveColor(varName: string, fallback: [number, number, number]): [number, number, number] {
@@ -155,6 +157,28 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
             const pr = projectOrthographic({ lon, lat }, view)
             if (pr.front) ctx.fillText('·', cx + pr.x * radius, cy - pr.y * radius)
           }
+        }
+        ctx.globalAlpha = 1
+      }
+
+      // celestial equator — emphasize the lat-0 reference circle above the grid
+      if (lineReveal > 0.01) {
+        ctx.globalAlpha = lineReveal * 0.3
+        ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`
+        for (let lon = 0; lon < 360; lon += 1.5) {
+          const pr = projectOrthographic({ lon, lat: 0 }, view)
+          if (pr.front) ctx.fillText('·', cx + pr.x * radius, cy - pr.y * radius)
+        }
+        ctx.globalAlpha = 1
+      }
+
+      // ecliptic — the zodiac path, in warm gold to read against the cool grid
+      if (lineReveal > 0.01) {
+        ctx.globalAlpha = lineReveal * 0.5
+        ctx.fillStyle = `rgb(${ECLIPTIC[0]}, ${ECLIPTIC[1]}, ${ECLIPTIC[2]})`
+        for (let lam = 0; lam < 360; lam += 1.5) {
+          const pr = projectOrthographic(eclipticPoint(lam), view)
+          if (pr.front) ctx.fillText('·', cx + pr.x * radius, cy - pr.y * radius)
         }
         ctx.globalAlpha = 1
       }
