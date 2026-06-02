@@ -51,6 +51,7 @@ type LayerKey =
   | 'constellationLines'
   | 'labels'
   | 'indicators'
+  | 'starNames'
   | 'starLabels'
 const LAYER_DEFS: { key: LayerKey; label: string }[] = [
   { key: 'stars', label: 'stars' },
@@ -59,6 +60,7 @@ const LAYER_DEFS: { key: LayerKey; label: string }[] = [
   { key: 'constellationLines', label: 'figures' },
   { key: 'labels', label: 'constellation labels' },
   { key: 'indicators', label: 'edge indicators' },
+  { key: 'starNames', label: 'star names (always)' },
   { key: 'starLabels', label: 'star names (hover)' },
 ]
 const ALL_ON: Record<LayerKey, boolean> = {
@@ -68,6 +70,7 @@ const ALL_ON: Record<LayerKey, boolean> = {
   constellationLines: true,
   labels: true,
   indicators: true,
+  starNames: true,
   starLabels: true,
 }
 const SHOW_PANEL = import.meta.env.DEV
@@ -290,6 +293,26 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
           ctx.globalAlpha = Math.min(1, (STAR_MIN_ALPHA + (1 - STAR_MIN_ALPHA) * b) * shimmer)
           ctx.fillText(asciiChar(b), cx + pr.x * radius, cy - pr.y * radius)
         }
+        ctx.globalAlpha = 1
+      }
+
+      // always-on names for the notable (curated) stars, once revealed
+      if (L.starNames && p > 0.85) {
+        ctx.globalAlpha = Math.min(1, (p - 0.85) / 0.15) * 0.75
+        ctx.fillStyle = `rgb(${STARLIGHT[0]}, ${STARLIGHT[1]}, ${STARLIGHT[2]})`
+        ctx.font = `11px ${SANS}`
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'middle'
+        for (const s of STARS) {
+          if (!s.name) continue
+          const pr = projectOrthographic(s, view)
+          if (!pr.front) continue
+          const sx = cx + pr.x * radius
+          const sy = cy - pr.y * radius
+          if (sx < 0 || sx > W || sy < 0 || sy > H) continue
+          ctx.fillText(s.name, sx + 8, sy - 7)
+        }
+        ctx.textAlign = 'center'
         ctx.globalAlpha = 1
       }
 
