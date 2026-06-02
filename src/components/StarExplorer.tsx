@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { projectOrthographic, type SkyCoord, type ViewRotation } from '../sky/projection'
 import { STARS, CONSTELLATIONS, brightness } from '../sky/constellations'
 import { eclipticPoint } from '../sky/lines'
+import { planetPositions } from '../sky/planets'
 
 interface StarExplorerProps {
   /** the CelestialBox's on-screen rect — FLIP origin */
@@ -22,6 +23,9 @@ const asciiChar = (w: number) => DENSITY[Math.round(Math.max(0, Math.min(1, w)) 
 
 const MONO = '"Fraktion Mono", ui-monospace, monospace'
 const SANS = '"Whyte", system-ui, sans-serif'
+// fonts that reliably carry the astrological planet glyphs (☉☽☿♀♂♃♄♅♆♇)
+const GLYPH_FONT = '"Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols2", system-ui, sans-serif'
+const PLANET_GLYPH = '✹' // single mark for all planets (color + label distinguish them)
 const NIGHT: [number, number, number] = [8, 10, 22]
 const STARLIGHT: [number, number, number] = [225, 232, 248]
 
@@ -58,6 +62,7 @@ const INDICATOR_REACH = 1.1
 // Toggleable render layers (a dev-only panel flips these live).
 type LayerKey =
   | 'stars'
+  | 'planets'
   | 'graticule'
   | 'ecliptic'
   | 'constellationLines'
@@ -67,6 +72,7 @@ type LayerKey =
   | 'starLabels'
 const LAYER_DEFS: { key: LayerKey; label: string }[] = [
   { key: 'stars', label: 'stars' },
+  { key: 'planets', label: 'planets' },
   { key: 'graticule', label: 'grid + equator' },
   { key: 'ecliptic', label: 'ecliptic' },
   { key: 'constellationLines', label: 'figures' },
@@ -77,6 +83,7 @@ const LAYER_DEFS: { key: LayerKey; label: string }[] = [
 ]
 const DEFAULT_LAYERS: Record<LayerKey, boolean> = {
   stars: true,
+  planets: true,
   graticule: true,
   ecliptic: true,
   constellationLines: false,
@@ -127,6 +134,9 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
 
   // each constellation's label anchor (baked into the data), for the edge indicators
   const centroids = useMemo(() => CONSTELLATIONS.map((c) => ({ name: c.name, center: c.center })), [])
+
+  // current geocentric planet positions, computed once when the explorer opens
+  const planets = useMemo(() => planetPositions(new Date()), [])
 
   const beginClose = useCallback(() => {
     closingRef.current = true
@@ -332,6 +342,32 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
         ctx.globalAlpha = 1
       }
 
+      // planets — current geocentric positions as their astrological glyphs,
+      // colored, riding the ecliptic; a faint glow reads as luminosity
+      if (L.planets && p > 0.6) {
+        const planetAlpha = Math.min(1, (p - 0.6) / 0.4)
+        ctx.textBaseline = 'middle'
+        for (const pl of planets) {
+          const pr = projectOrthographic(pl, view)
+          if (!pr.front) continue
+          const sx = cx + pr.x * radius
+          const sy = cy - pr.y * radius
+          const gsize = 12 + pl.size * 0.8
+          // glyph — no glow
+          ctx.globalAlpha = planetAlpha
+          ctx.fillStyle = pl.color
+          ctx.font = `${gsize}px ${GLYPH_FONT}`
+          ctx.textAlign = 'center'
+          ctx.fillText(PLANET_GLYPH, sx, sy)
+          // label (℞ marks retrograde)
+          ctx.font = `12px ${SANS}`
+          ctx.textAlign = 'left'
+          ctx.fillText(pl.retrograde ? `${pl.name} ℞` : pl.name, sx + gsize * 0.7, sy)
+        }
+        ctx.globalAlpha = 1
+        ctx.textAlign = 'center'
+      }
+
       // always-on names for the notable (curated) stars, once revealed
       if (L.starNames && p > 0.85) {
         ctx.globalAlpha = Math.min(1, (p - 0.85) / 0.15) * 0.75
@@ -463,7 +499,7 @@ export function StarExplorer({ originRect, originView, onClose }: StarExplorerPr
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
     }
-  }, [originRect, onClose, centroids])
+  }, [originRect, onClose, centroids, planets])
 
   const onPointerDown = (e: React.PointerEvent) => {
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
