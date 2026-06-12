@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from './components/ThemeProvider'
 import './index.css'
 import App from './App.tsx'
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
             }
           />
         </Routes>
+        <Analytics />
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,
