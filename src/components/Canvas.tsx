@@ -10,6 +10,12 @@ interface CanvasProps {
 // Large enough to cover any reasonable pan distance
 const GRID_SIZE = 10000
 
+// Small viewports (phones) start zoomed out so the whole identity zone fits;
+// desktop rests at 1. Used for both the initial mount and the recenter button
+// so the "home" zoom is consistent.
+const MOBILE_BREAKPOINT = 768
+const restingScaleForWidth = (width: number) => (width < MOBILE_BREAKPOINT ? 0.5 : 1)
+
 export function Canvas({ children, onZoomChange }: CanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const gRef = useRef<SVGGElement>(null)
@@ -78,7 +84,7 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
     const rect = svgRef.current.getBoundingClientRect()
     const initialTransform = d3.zoomIdentity
       .translate(rect.width / 2, rect.height / 2)
-      .scale(1)
+      .scale(restingScaleForWidth(rect.width))
     svg.transition().duration(300).call(zoomRef.current.transform, initialTransform)
   }, [momentum])
 
@@ -204,14 +210,17 @@ export function Canvas({ children, onZoomChange }: CanvasProps) {
 
     svgElement.addEventListener('wheel', handleWheel, { passive: false })
 
-    // Position initial view so the focal point (canvas origin) sits at viewport center
+    // Position initial view so the focal point (canvas origin) sits at viewport
+    // center. The focal point maps to (initialX, initialY) at any scale, so the
+    // mobile resting zoom keeps it centered.
     const rect = svgElement.getBoundingClientRect()
     const initialX = rect.width / 2
     const initialY = rect.height / 2
-    const initialTransform = d3.zoomIdentity.translate(initialX, initialY).scale(1)
-    transformRef.current = { x: initialX, y: initialY, k: 1 }
+    const initialScale = restingScaleForWidth(rect.width)
+    const initialTransform = d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
+    transformRef.current = { x: initialX, y: initialY, k: initialScale }
     svg.call(zoom.transform, initialTransform)
-    onZoomChange?.(1)
+    onZoomChange?.(initialScale)
 
     return () => {
       momentum.cancel()
