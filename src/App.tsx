@@ -1,22 +1,25 @@
-import { useState, lazy, Suspense, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ZoomControls } from './components/ZoomControls'
 import { ProjectCard } from './components/ProjectCard'
 import { ProjectModal } from './components/ProjectModal'
 import { BlogModal } from './components/BlogModal'
-import { CelestialBox } from './components/CelestialBox'
-// Lazy: the full star catalog (~2 MB) lives behind this import and only loads
-// when the explorer actually opens — keeps it out of the initial bundle.
-const StarExplorer = lazy(() => import('./components/StarExplorer').then((m) => ({ default: m.StarExplorer })))
+// The interactive <CelestialBox /> ASCII star (and its lazy <StarExplorer />)
+// are temporarily swapped out for a photo — see <IdentityPhoto /> below. Restore
+// by re-importing CelestialBox/StarExplorer and reverting the identity-anchor JSX.
+import { IdentityPhoto } from './components/IdentityPhoto'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
 import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
-import type { ViewRotation } from './sky/projection'
 
 const FOCAL_X = 0
 const FOCAL_Y = 0
 const IMAGE_HEIGHT = 260
+
+// Temporary identity photo standing in for the ASCII star explorer.
+const IDENTITY_PHOTO_SRC =
+  'https://schultzdavidg-portfolio.s3.us-west-1.amazonaws.com/images/trail-selfie.webp'
 
 // Identity card geometry
 const IDENTITY_ANCHOR_SIZE = 180
@@ -45,10 +48,12 @@ const TAB_WIDTHS: Record<RootId, number> = {
 // About panel: body copy above, link row below.
 const ABOUT_BODY_Y = 110
 const ABOUT_BODY_WIDTH = 560
-const ABOUT_BODY_HEIGHT = 180
+// Hugs the 4-line paragraph (4 × 16px × 1.6 line-height ≈ 102) so the box adds
+// no slack; the gap below is then the same 32px rhythm as tabs → copy above.
+const ABOUT_BODY_HEIGHT = 102
 const ABOUT_BODY_FONT_SIZE = 16
 
-const LINK_PANEL_Y = ABOUT_BODY_Y + ABOUT_BODY_HEIGHT + 24
+const LINK_PANEL_Y = ABOUT_BODY_Y + ABOUT_BODY_HEIGHT + 32
 const LINK_HEIGHT = 40
 const LINK_RX = 8
 const LINK_GAP = 12
@@ -163,7 +168,6 @@ function App() {
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
   const [activeRoot, setActiveRoot] = useState<RootId>('product')
-  const [explorer, setExplorer] = useState<{ rect: DOMRect; view: ViewRotation } | null>(null)
 
   const activeChain = (() => {
     if (activeRoot === 'about') return null
@@ -200,12 +204,12 @@ function App() {
       <Canvas onZoomChange={setZoomScale}>
         {/* Identity zone — centered on focal point */}
         <g transform={`translate(${FOCAL_X}, ${FOCAL_Y})`}>
-          <CelestialBox
+          <IdentityPhoto
             x={-(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200)}
             y={-IDENTITY_ANCHOR_SIZE / 2}
             size={IDENTITY_ANCHOR_SIZE}
-            paused={explorer !== null}
-            onOpen={(rect, view) => setExplorer({ rect, view })}
+            src={IDENTITY_PHOTO_SRC}
+            alt="David Schultz"
           />
 
           <text
@@ -402,16 +406,6 @@ function App() {
         post={selectedBlogPost}
         onClose={() => setSelectedBlogPost(null)}
       />
-
-      {explorer && (
-        <Suspense fallback={null}>
-          <StarExplorer
-            originRect={explorer.rect}
-            originView={explorer.view}
-            onClose={() => setExplorer(null)}
-          />
-        </Suspense>
-      )}
     </>
   )
 }
