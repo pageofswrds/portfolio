@@ -14,6 +14,7 @@ const mdxModules = import.meta.glob<{
     year?: number
     date?: string
     thumbnail?: string
+    themes?: string[]
     order?: number | null
     visible?: boolean
     position?: { x: number; y: number }
@@ -27,6 +28,7 @@ export interface BlogContent {
   subtitle: string
   date: string
   thumbnail: string
+  themes: string[]
   visible: boolean
   position?: { x: number; y: number }
   Component: React.ComponentType<MDXContentProps>
@@ -45,6 +47,7 @@ export const blogPosts: BlogContent[] = Object.entries(mdxModules)
       subtitle: frontmatter.subtitle || '',
       date: frontmatter.date || '',
       thumbnail: frontmatter.thumbnail || '',
+      themes: frontmatter.themes ?? [],
       visible: frontmatter.visible ?? true,
       position: frontmatter.position,
       Component: module.default,

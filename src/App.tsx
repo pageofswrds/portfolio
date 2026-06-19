@@ -3,6 +3,8 @@ import { Canvas } from './components/Canvas'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ZoomControls } from './components/ZoomControls'
 import { ProjectCard } from './components/ProjectCard'
+import { PostNode } from './components/PostNode'
+import { StickyNote } from './components/StickyNote'
 import { ProjectModal } from './components/ProjectModal'
 import { BlogModal } from './components/BlogModal'
 // The interactive <CelestialBox /> ASCII star (and its lazy <StarExplorer />)
@@ -12,10 +14,17 @@ import { IdentityPhoto } from './components/IdentityPhoto'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
 import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
+import {
+  placeSubgraph,
+  type GraphNode,
+  type SubgraphLayout,
+} from './layout/graph'
 
 const FOCAL_X = 0
 const FOCAL_Y = 0
 const IMAGE_HEIGHT = 260
+// Full card width — mirrors ProjectCard's FIXED_ASPECT_RATIO (16/10).
+const CARD_WIDTH = (IMAGE_HEIGHT * 16) / 10
 
 // Temporary identity photo standing in for the ASCII star explorer.
 const IDENTITY_PHOTO_SRC =
@@ -48,9 +57,9 @@ const TAB_WIDTHS: Record<RootId, number> = {
 // About panel: body copy above, link row below.
 const ABOUT_BODY_Y = 110
 const ABOUT_BODY_WIDTH = 560
-// Hugs the 4-line paragraph (4 × 16px × 1.6 line-height ≈ 102) so the box adds
-// no slack; the gap below is then the same 32px rhythm as tabs → copy above.
-const ABOUT_BODY_HEIGHT = 102
+// Hugs the single paragraph (~3 lines × 16px × 1.6 ≈ 77) so the box adds no
+// slack; the link row below derives from this (LINK_PANEL_Y).
+const ABOUT_BODY_HEIGHT = 84
 const ABOUT_BODY_FONT_SIZE = 16
 
 const LINK_PANEL_Y = ABOUT_BODY_Y + ABOUT_BODY_HEIGHT + 32
@@ -59,6 +68,56 @@ const LINK_RX = 8
 const LINK_GAP = 12
 const LINK_FONT_SIZE = 14
 const LINK_ROW_OFFSET_X = -200
+
+// Research panel: thesis copy + a row of static "research thread" nodes, sitting
+// above the post funnel — mirrors the About panel's copy-above-items pattern.
+const RESEARCH_PANEL_X = LINK_ROW_OFFSET_X
+const RESEARCH_PANEL_Y = ABOUT_BODY_Y
+const RESEARCH_PANEL_WIDTH = ABOUT_BODY_WIDTH
+// Generous fixed box: quote (~90) + copy (~270) + thread row (32) + gaps,
+// clipped at this height. Subgraph tops below are kept clear of the panel bottom
+// (RESEARCH_PANEL_Y + this).
+const RESEARCH_PANEL_HEIGHT = 480
+const RESEARCH_BODY_FONT_SIZE = ABOUT_BODY_FONT_SIZE
+
+// Product panel: body copy above the product card funnel, same left-edge as the
+// About/Research panels. The funnel is pushed down by PRODUCT_CHAIN_PUSH to clear it.
+const PRODUCT_PANEL_X = LINK_ROW_OFFSET_X
+const PRODUCT_PANEL_Y = ABOUT_BODY_Y
+const PRODUCT_PANEL_WIDTH = ABOUT_BODY_WIDTH
+const PRODUCT_PANEL_HEIGHT = 220
+const PRODUCT_CHAIN_PUSH = 230
+
+// The post graph is two independent subgraphs — XR/interaction work, and the
+// AI/consciousness work — each a date-threaded constellation, side by side.
+const POST_NODE_BOX_WIDTH = 360 // bounding box; pills hug their text within it
+const POST_NODE_BOX_HEIGHT = 92
+const SUBGRAPH_TITLE_DY = -70 // title offset above a subgraph's first node
+
+interface Subgraph {
+  id: 'xr' | 'ai'
+  label: string
+  layout: SubgraphLayout
+}
+
+const RESEARCH_SUBGRAPHS: Subgraph[] = [
+  {
+    id: 'xr',
+    label: 'xr & interfaces',
+    layout: { centerX: -340, top: 700, rowStep: 118, amplitude: 78, phase: 1.3, phase0: 0.5 },
+  },
+  {
+    id: 'ai',
+    label: 'intelligence & consciousness',
+    layout: { centerX: 340, top: 700, rowStep: 118, amplitude: 104, phase: 0.95 },
+  },
+]
+
+// A post belongs to the XR subgraph if its primary theme is the XR thread;
+// everything else (context/graphs + cognition/coordination) is the AI subgraph.
+function subgraphIdFor(themes: string[]): 'xr' | 'ai' {
+  return themes[0] === 'XR & interfaces' ? 'xr' : 'ai'
+}
 
 interface ExternalLink {
   label: string
@@ -169,8 +228,9 @@ function App() {
   const [zoomScale, setZoomScale] = useState(1)
   const [activeRoot, setActiveRoot] = useState<RootId>('product')
 
+  // Card funnel — product & past-work. Research renders as a node graph instead.
   const activeChain = (() => {
-    if (activeRoot === 'about') return null
+    if (activeRoot === 'about' || activeRoot === 'research') return null
     const root = ROOTS[activeRoot]
     const artifacts = root.members
       .map(lookupArtifact)
@@ -185,12 +245,36 @@ function App() {
     const placements = placeAncestry(placeable, {
       ...CHAIN_CONFIG,
       focalX: tabCenterCanvasX(activeRoot),
-      focalY: CHAIN_FOCAL_Y,
+      focalY:
+        CHAIN_FOCAL_Y + (activeRoot === 'product' ? PRODUCT_CHAIN_PUSH : 0),
     })
 
     const placementBySlug = new Map(placements.map((p) => [p.slug, p]))
 
     return { artifacts, placementBySlug }
+  })()
+
+  // Research node graph — two date-threaded subgraphs of text-pill nodes.
+  const researchGraph = (() => {
+    if (activeRoot !== 'research') return null
+    const members = ROOTS.research.members
+      .map((slug) => blogBySlug.get(slug))
+      .filter((b): b is BlogContent => b !== undefined)
+
+    const subgraphs = RESEARCH_SUBGRAPHS.map((sg) => {
+      const nodes: GraphNode[] = members
+        .filter((b) => subgraphIdFor(b.themes) === sg.id)
+        .map((b) => ({ slug: b.slug, date: b.date }))
+      const { placements, edges } = placeSubgraph(nodes, sg.layout)
+      return { ...sg, placements, edges }
+    })
+
+    const placements = subgraphs.flatMap((g) => g.placements)
+    const edges = subgraphs.flatMap((g) => g.edges)
+    const posBySlug = new Map(placements.map((p) => [p.slug, p]))
+    const postBySlug = new Map(members.map((b) => [b.slug, b]))
+
+    return { subgraphs, placements, edges, posBySlug, postBySlug }
   })()
 
   const handleTabClick = (id: RootId) => {
@@ -285,13 +369,21 @@ function App() {
           >
             <div
               style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
                 fontFamily: 'var(--font-sans)',
                 fontSize: `${ABOUT_BODY_FONT_SIZE}px`,
                 lineHeight: 1.6,
                 color: 'var(--tx-primary)',
               }}
             >
-              Hi, I'm an Interaction Designer from Seattle currently building Kairōs—a community tool designed for studying the stars. Kairōs is a practical path towards proving out my thesis: that graph architecture in the context window is where we'll see the next big steps forward in AI.
+              <p style={{ margin: 0 }}>
+                Hi, I'm an Interaction Designer from Seattle currently building
+                Kairōs—a community tool designed for studying the stars. More
+                broadly, I'm focused on building systems that treat the context
+                window as a design surface.
+              </p>
             </div>
           </foreignObject>
         )}
@@ -357,6 +449,199 @@ function App() {
           </g>
         )}
 
+        {/* Research panel — thesis copy + static thread nodes above the post funnel */}
+        {/* Product panel — body copy above the product card */}
+        {activeRoot === 'product' && (
+          <foreignObject
+            x={PRODUCT_PANEL_X}
+            y={PRODUCT_PANEL_Y}
+            width={PRODUCT_PANEL_WIDTH}
+            height={PRODUCT_PANEL_HEIGHT}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                fontFamily: 'var(--font-sans)',
+                fontSize: `${RESEARCH_BODY_FONT_SIZE}px`,
+                lineHeight: 1.6,
+                color: 'var(--tx-primary)',
+              }}
+            >
+              <p style={{ margin: 0 }}>
+                My product work centers on a single lever:{' '}
+                <strong style={{ fontWeight: 500 }}>
+                  controlling which tokens are — and aren't — loaded into the
+                  context window
+                </strong>{' '}
+                at any given moment.
+              </p>
+              <p style={{ margin: 0 }}>
+                Get that right and a small, focused model outperforms a much
+                larger one. The art is in what you leave out — surfacing the
+                lowest-entropy nodes a task actually needs, and keeping
+                everything else out of the window until it does.
+              </p>
+            </div>
+          </foreignObject>
+        )}
+
+        {activeRoot === 'research' && (
+          <foreignObject
+            x={RESEARCH_PANEL_X}
+            y={RESEARCH_PANEL_Y}
+            width={RESEARCH_PANEL_WIDTH}
+            height={RESEARCH_PANEL_HEIGHT}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              <blockquote
+                style={{
+                  margin: 0,
+                  paddingLeft: '20px',
+                  borderLeft: '2px solid var(--bd-hover)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 400,
+                    fontSize: '23px',
+                    lineHeight: 1.3,
+                    color: 'var(--tx-primary)',
+                  }}
+                >
+                  “Intelligence is the ability to reach the same goal by
+                  different means.”
+                </p>
+                <cite
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontStyle: 'normal',
+                    fontSize: '15px',
+                    letterSpacing: '0.04em',
+                    color: 'var(--tx-tertiary)',
+                  }}
+                >
+                  — William James
+                </cite>
+              </blockquote>
+
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  fontSize: `${RESEARCH_BODY_FONT_SIZE}px`,
+                  lineHeight: 1.6,
+                  color: 'var(--tx-primary)',
+                }}
+              >
+                <p style={{ margin: 0 }}>
+                  I've been studying metaphysics for some time, and I think it's
+                  abundantly clear that{' '}
+                  <strong style={{ fontWeight: 500 }}>
+                    these LLMs are the real deal
+                  </strong>
+                  .
+                </p>
+                <p style={{ margin: 0 }}>
+                  I see reality through the lens of Platonism; the idea that
+                  truth is separate from the material world. Some use the word
+                  holographic here, but for me, what it boils down to is that you
+                  can find the same patterns appear across completely different
+                  domains.
+                </p>
+                <p style={{ margin: 0 }}>
+                  The thing about AI is that it's{' '}
+                  <em style={{ fontStyle: 'italic' }}>really</em> good at
+                  pattern-matching—and my work revolves around finding the
+                  lowest entropy patterns to enable more advanced cognition.
+                </p>
+              </div>
+            </div>
+          </foreignObject>
+        )}
+
+        {/* A fleeting idea, tacked up to the right of the research copy */}
+        {activeRoot === 'research' && (
+          <StickyNote
+            x={430}
+            y={150}
+            width={236}
+            rotate={-4}
+            heading="The idea"
+            text="Every token in your chat history subtly influences model behaviour. I believe that if we can figure out ways to manipulate which tokens are and aren't loaded, we'll find a promising avenue to compete with the frontier models on low-power hardware."
+          />
+        )}
+
+        {/* Research node graph — edges (behind), subgraph titles, then pills */}
+        {researchGraph && (
+          <>
+            {researchGraph.edges.map((edge) => {
+              const a = researchGraph.posBySlug.get(edge.from)
+              const b = researchGraph.posBySlug.get(edge.to)
+              if (!a || !b) return null
+              return (
+                <line
+                  key={`${edge.from}-${edge.to}`}
+                  className="graph-edge"
+                  x1={a.x}
+                  y1={a.y}
+                  x2={b.x}
+                  y2={b.y}
+                />
+              )
+            })}
+
+            {researchGraph.subgraphs.map((sg) => (
+              <text
+                key={`title-${sg.id}`}
+                x={sg.layout.centerX}
+                y={sg.layout.top + SUBGRAPH_TITLE_DY}
+                textAnchor="middle"
+                fill="var(--tx-tertiary)"
+                fontSize={14}
+                fontFamily="var(--font-mono)"
+                style={{ letterSpacing: '0.04em' }}
+              >
+                {sg.label}
+              </text>
+            ))}
+
+            {researchGraph.placements.map((p) => {
+              const post = researchGraph.postBySlug.get(p.slug)
+              if (!post) return null
+              const meta = post.subtitle.includes('•')
+                ? (post.subtitle.split('•').pop()?.trim() ?? '')
+                : post.subtitle
+              return (
+                <PostNode
+                  key={p.slug}
+                  x={p.x}
+                  y={p.y}
+                  maxWidth={POST_NODE_BOX_WIDTH}
+                  boxHeight={POST_NODE_BOX_HEIGHT}
+                  title={post.title}
+                  meta={meta}
+                  onClick={() => setSelectedBlogPost(post)}
+                />
+              )
+            })}
+          </>
+        )}
+
         {/* Artifact chain — cards extending downward from the active tab */}
         {activeChain &&
           activeChain.artifacts.map((artifact) => {
@@ -381,10 +666,17 @@ function App() {
                 ? artifact.data.thumbnailSmall
                 : artifact.data.thumbnail
 
+            // Product cards left-align to the shared left edge (tab row / body
+            // copy); other tabs keep the centered funnel placement.
+            const cardX =
+              activeRoot === 'product'
+                ? PRODUCT_PANEL_X + CARD_WIDTH / 2
+                : placement.x
+
             return (
               <ProjectCard
                 key={`${artifact.kind}-${artifact.data.slug}`}
-                x={placement.x}
+                x={cardX}
                 y={placement.y}
                 imageHeight={IMAGE_HEIGHT}
                 title={artifact.data.title}
