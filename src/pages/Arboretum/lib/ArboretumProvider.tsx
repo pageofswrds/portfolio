@@ -169,7 +169,7 @@ export const ArboretumProvider: React.FC<{ children: ReactNode }> = ({ children 
     cellData: [],
     selectedCell: null,
     filterConfig: { type: 'ALL', value: '' },
-    computeConfig: { metric: 'ALL' },
+    computeConfig: { metric: 'Z-SCORE' },
     statistics: {
       totalAccessions: 0,
       meanA: 0,
