@@ -437,6 +437,7 @@ html, body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: clamp(1.25rem, 3vw, 2rem);
   font-family: var(--font-sans);
@@ -447,6 +448,22 @@ html, body {
 /* MDX content sets its own top margins; drop the leading one. */
 .modal-body > *:first-child {
   margin-top: 0;
+}
+
+/* Code blocks scroll internally rather than stretching the modal width. */
+.modal-body pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Long words/URLs wrap instead of forcing horizontal scroll. */
+.modal-body p,
+.modal-body li,
+.modal-body h1,
+.modal-body h2,
+.modal-body h3 {
+  overflow-wrap: break-word;
 }
 
 @keyframes modal-backdrop-in {
