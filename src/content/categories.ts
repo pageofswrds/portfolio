@@ -1,4 +1,4 @@
-export const ROOT_IDS = ['about', 'product', 'research', 'past-work'] as const
+export const ROOT_IDS = ['about', 'product', 'research'] as const
 
 export type RootId = (typeof ROOT_IDS)[number]
 
@@ -17,7 +17,17 @@ export const ROOTS: Record<RootId, RootDefinition> = {
   product: {
     id: 'product',
     label: 'Product',
-    members: ['kairos'],
+    // Rendered as a 2-column grid in this exact order (left→right, top→down).
+    members: [
+      'kairos',
+      'terrariumxr',
+      'layer',
+      'layerpitch',
+      'acquire',
+      'sureui',
+      'arboretum',
+      'cycles',
+    ],
   },
   research: {
     id: 'research',
@@ -37,19 +47,8 @@ export const ROOTS: Record<RootId, RootDefinition> = {
       'minimizing-entropy-in-intelligent-systems-pt2',
       'the-groove-that-passes-for-rigor',
       'the-cognitive-lightcone',
-    ],
-  },
-  'past-work': {
-    id: 'past-work',
-    label: 'Past work',
-    members: [
-      'acquire',
-      'sureui',
-      'arboretum',
-      'cycles',
-      'terrariumxr',
-      'layer',
-      'layerpitch',
+      // field notes (hidden) — not in the AI tree, so they fall into the
+      // field-notes bucket. Old past-work blogs parked here.
       'devlog01',
       'devlog02',
       'capstone-planning',

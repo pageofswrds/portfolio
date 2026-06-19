@@ -9,7 +9,8 @@ interface ProjectCardProps {
   centered?: boolean
 }
 
-const TEXT_AREA_HEIGHT = 96
+// Caption sized to a single-line title + year (no opaque card background).
+const TEXT_AREA_HEIGHT = 62
 const FIXED_ASPECT_RATIO = 16 / 10
 
 export function ProjectCard({
@@ -28,32 +29,20 @@ export function ProjectCard({
   const renderX = centered ? x - width / 2 : x
   const renderY = centered ? y - totalHeight / 2 : y
 
+  const clipId = `clip-${title.replace(/[^a-zA-Z0-9]/g, '-')}`
+
   return (
     <g
       transform={`translate(${renderX}, ${renderY})`}
       className="cursor-pointer"
       onClick={onClick}
     >
-      {/* Card background */}
-      <rect
-        width={width}
-        height={totalHeight}
-        rx="16"
-        fill="var(--bg-card)"
-      />
-
-      {/* Thumbnail image (if provided) */}
-      {thumbnail && (
+      {/* Image (rounded). Falls back to a plain rounded panel if no thumbnail. */}
+      {thumbnail ? (
         <>
           <defs>
-            <clipPath id={`clip-${title.replace(/\s/g, '-')}`}>
-              <rect
-                x="0"
-                y="0"
-                width={width}
-                height={imageHeight}
-                rx="16"
-              />
+            <clipPath id={clipId}>
+              <rect x="0" y="0" width={width} height={imageHeight} rx="16" />
             </clipPath>
           </defs>
           <image
@@ -63,12 +52,21 @@ export function ProjectCard({
             width={width}
             height={imageHeight}
             preserveAspectRatio="xMidYMid slice"
-            clipPath={`url(#clip-${title.replace(/\s/g, '-')})`}
+            clipPath={`url(#${clipId})`}
           />
         </>
+      ) : (
+        <rect
+          x="0"
+          y="0"
+          width={width}
+          height={imageHeight}
+          rx="16"
+          fill="var(--bg-card)"
+        />
       )}
 
-      {/* Title and Year - using foreignObject for text wrapping */}
+      {/* Caption — transparent background, hugs its content */}
       <foreignObject
         x="0"
         y={imageHeight}
@@ -77,10 +75,10 @@ export function ProjectCard({
       >
         <div
           style={{
-            padding: '20px 16px 12px',
+            padding: '14px 2px 0',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px',
+            gap: '3px',
           }}
         >
           <div

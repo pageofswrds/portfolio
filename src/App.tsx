@@ -13,7 +13,6 @@ import { BlogModal } from './components/BlogModal'
 import { IdentityPhoto } from './components/IdentityPhoto'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
-import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
 import { placeSubgraph, type SubgraphLayout } from './layout/graph'
 
 const FOCAL_X = 0
@@ -45,7 +44,6 @@ const TAB_FONT_SIZE = 14
 
 const TAB_WIDTHS: Record<RootId, number> = {
   about: 90,
-  'past-work': 120,
   product: 100,
   research: 110,
 }
@@ -76,13 +74,15 @@ const RESEARCH_PANEL_WIDTH = ABOUT_BODY_WIDTH
 const RESEARCH_PANEL_HEIGHT = 480
 const RESEARCH_BODY_FONT_SIZE = ABOUT_BODY_FONT_SIZE
 
-// Product panel: body copy above the product card funnel, same left-edge as the
-// About/Research panels. The funnel is pushed down by PRODUCT_CHAIN_PUSH to clear it.
-const PRODUCT_PANEL_X = LINK_ROW_OFFSET_X
-const PRODUCT_PANEL_Y = ABOUT_BODY_Y
-const PRODUCT_PANEL_WIDTH = ABOUT_BODY_WIDTH
-const PRODUCT_PANEL_HEIGHT = 220
-const PRODUCT_CHAIN_PUSH = 230
+// Product is a 2-column card grid, filled left→right, top→down in member order.
+// Left column's left edge aligns with the tab row / content (LINK_ROW_OFFSET_X).
+const PRODUCT_CARD_HEIGHT = IMAGE_HEIGHT + 62 // image + ProjectCard caption
+// Left column's left edge aligns with the identity photo's left edge.
+const PRODUCT_COL0_X =
+  -(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200) + CARD_WIDTH / 2
+const PRODUCT_COL_GAP = 48
+const PRODUCT_ROW_GAP = 56
+const PRODUCT_ROW0_Y = 300 // first row's card center
 
 // The post graph is two independent subgraphs — XR/interaction work, and the
 // AI/consciousness work — each a date-threaded constellation, side by side.
@@ -207,18 +207,6 @@ const CORE_DETAILS_LINKS: ExternalLink[] = [
   { label: 'Threads', href: 'https://www.threads.com/@studiozojer', width: 110, icon: ThreadsIcon },
 ]
 
-// Chain panel for non-Core-details tabs — pushed further down so the first card
-// clears the identity card.
-const CHAIN_FOCAL_Y = 180
-
-const CHAIN_CONFIG: Omit<FunnelConfig, 'focalX' | 'focalY'> = {
-  topMargin: 120,
-  verticalSpacing: 380,
-  maxSpread: 24,
-  jitterRange: 24,
-  direction: 'down',
-}
-
 const projectBySlug = new Map(projects.map((p) => [p.slug, p]))
 const blogBySlug = new Map(blogPosts.map((b) => [b.slug, b]))
 
@@ -244,41 +232,23 @@ function tabLocalX(id: RootId): number {
   return x
 }
 
-// Canvas-space x at the center of a tab (used for chain centering).
-function tabCenterCanvasX(id: RootId): number {
-  return TAB_ROW_OFFSET_X + tabLocalX(id) + TAB_WIDTHS[id] / 2
-}
-
 function App() {
   const [selectedProject, setSelectedProject] = useState<ProjectContent | null>(null)
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogContent | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
   const [activeRoot, setActiveRoot] = useState<RootId>('product')
 
-  // Card funnel — product & past-work. Research renders as a node graph instead.
-  const activeChain = (() => {
-    if (activeRoot === 'about' || activeRoot === 'research') return null
-    const root = ROOTS[activeRoot]
-    const artifacts = root.members
+  // Product — a 2-column card grid in member order (left→right, top→down).
+  const productGrid = (() => {
+    if (activeRoot !== 'product') return null
+    return ROOTS.product.members
       .map(lookupArtifact)
       .filter((a): a is Artifact => a !== null)
-
-    const placeable: Placeable[] = artifacts.map((a) => ({
-      slug: a.data.slug,
-      date: a.data.date,
-      position: a.data.position,
-    }))
-
-    const placements = placeAncestry(placeable, {
-      ...CHAIN_CONFIG,
-      focalX: tabCenterCanvasX(activeRoot),
-      focalY:
-        CHAIN_FOCAL_Y + (activeRoot === 'product' ? PRODUCT_CHAIN_PUSH : 0),
-    })
-
-    const placementBySlug = new Map(placements.map((p) => [p.slug, p]))
-
-    return { artifacts, placementBySlug }
+      .map((artifact, i) => ({
+        artifact,
+        x: PRODUCT_COL0_X + (i % 2) * (CARD_WIDTH + PRODUCT_COL_GAP),
+        y: PRODUCT_ROW0_Y + Math.floor(i / 2) * (PRODUCT_CARD_HEIGHT + PRODUCT_ROW_GAP),
+      }))
   })()
 
   // Research node graph — two date-threaded subgraphs of text-pill nodes.
@@ -493,44 +463,7 @@ function App() {
           </g>
         )}
 
-        {/* Research panel — thesis copy + static thread nodes above the post funnel */}
-        {/* Product panel — body copy above the product card */}
-        {activeRoot === 'product' && (
-          <foreignObject
-            x={PRODUCT_PANEL_X}
-            y={PRODUCT_PANEL_Y}
-            width={PRODUCT_PANEL_WIDTH}
-            height={PRODUCT_PANEL_HEIGHT}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                fontFamily: 'var(--font-sans)',
-                fontSize: `${RESEARCH_BODY_FONT_SIZE}px`,
-                lineHeight: 1.6,
-                color: 'var(--tx-primary)',
-              }}
-            >
-              <p style={{ margin: 0 }}>
-                My product work centers on a single lever:{' '}
-                <strong style={{ fontWeight: 500 }}>
-                  controlling which tokens are — and aren't — loaded into the
-                  context window
-                </strong>{' '}
-                at any given moment.
-              </p>
-              <p style={{ margin: 0 }}>
-                Get that right and a small, focused model outperforms a much
-                larger one. The art is in what you leave out — surfacing the
-                lowest-entropy nodes a task actually needs, and keeping
-                everything else out of the window until it does.
-              </p>
-            </div>
-          </foreignObject>
-        )}
-
+        {/* Research panel — epigraph + thesis copy above the post graph */}
         {activeRoot === 'research' && (
           <foreignObject
             x={RESEARCH_PANEL_X}
@@ -673,51 +606,28 @@ function App() {
           </>
         )}
 
-        {/* Artifact chain — cards extending downward from the active tab */}
-        {activeChain &&
-          activeChain.artifacts.map((artifact) => {
-            const placement = activeChain.placementBySlug.get(artifact.data.slug)
-            if (!placement) return null
-
-            const onClick = () => {
-              if (artifact.kind === 'project') {
-                setSelectedProject(artifact.data)
-              } else {
-                setSelectedBlogPost(artifact.data)
+        {/* Product — 2-column card grid */}
+        {productGrid &&
+          productGrid.map(({ artifact, x, y }) => (
+            <ProjectCard
+              key={`product-${artifact.data.slug}`}
+              x={x}
+              y={y}
+              imageHeight={IMAGE_HEIGHT}
+              title={artifact.data.title}
+              year={artifact.kind === 'project' ? artifact.data.year : ''}
+              thumbnail={
+                artifact.kind === 'project'
+                  ? artifact.data.thumbnailSmall
+                  : artifact.data.thumbnail
               }
-            }
-
-            const yearLabel =
-              artifact.kind === 'project'
-                ? artifact.data.year
-                : (artifact.data.subtitle.split('•')[0]?.trim() ?? '')
-
-            const thumb =
-              artifact.kind === 'project'
-                ? artifact.data.thumbnailSmall
-                : artifact.data.thumbnail
-
-            // Product cards left-align to the shared left edge (tab row / body
-            // copy); other tabs keep the centered funnel placement.
-            const cardX =
-              activeRoot === 'product'
-                ? PRODUCT_PANEL_X + CARD_WIDTH / 2
-                : placement.x
-
-            return (
-              <ProjectCard
-                key={`${artifact.kind}-${artifact.data.slug}`}
-                x={cardX}
-                y={placement.y}
-                imageHeight={IMAGE_HEIGHT}
-                title={artifact.data.title}
-                year={yearLabel}
-                thumbnail={thumb}
-                onClick={onClick}
-                centered
-              />
-            )
-          })}
+              onClick={() => {
+                if (artifact.kind === 'project') setSelectedProject(artifact.data)
+                else setSelectedBlogPost(artifact.data)
+              }}
+              centered
+            />
+          ))}
       </Canvas>
 
       <ProjectModal
