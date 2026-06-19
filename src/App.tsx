@@ -14,11 +14,7 @@ import { IdentityPhoto } from './components/IdentityPhoto'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
 import { placeAncestry, type FunnelConfig, type Placeable } from './layout/funnel'
-import {
-  placeSubgraph,
-  type GraphNode,
-  type SubgraphLayout,
-} from './layout/graph'
+import { placeSubgraph, type SubgraphLayout } from './layout/graph'
 
 const FOCAL_X = 0
 const FOCAL_Y = 0
@@ -92,32 +88,63 @@ const PRODUCT_CHAIN_PUSH = 230
 // AI/consciousness work — each a date-threaded constellation, side by side.
 const POST_NODE_BOX_WIDTH = 360 // bounding box; pills hug their text within it
 const POST_NODE_BOX_HEIGHT = 92
-const SUBGRAPH_TITLE_DY = -70 // title offset above a subgraph's first node
 
-interface Subgraph {
-  id: 'xr' | 'ai'
-  label: string
-  layout: SubgraphLayout
+// "Field Notes" (the misc takes) is hidden for now — flip to re-render it. Its
+// membership/layout is still wired below so it returns with one toggle.
+const SHOW_FIELD_NOTES = false
+
+// Field-notes subgraph — a date-threaded serpentine. Membership is "every
+// research post not claimed by the AI tree below", so calculated-risk and
+// rapid-refactoring land here too.
+const FIELD_NOTES_LAYOUT: SubgraphLayout = {
+  centerX: -340,
+  top: 700,
+  rowStep: 118,
+  amplitude: 78,
+  phase: 1.3,
+  phase0: 0.5,
 }
 
-const RESEARCH_SUBGRAPHS: Subgraph[] = [
-  {
-    id: 'xr',
-    label: 'xr & interfaces',
-    layout: { centerX: -340, top: 700, rowStep: 118, amplitude: 78, phase: 1.3, phase0: 0.5 },
-  },
-  {
-    id: 'ai',
-    label: 'intelligence & consciousness',
-    layout: { centerX: 340, top: 700, rowStep: 118, amplitude: 104, phase: 0.95 },
-  },
+// AI/consciousness subgraph — an authored tree (not date-derived):
+//   pt.1 ─┬─ pt.2 ─┬─ entropy duality
+//         │        ├─ the vessel shapes the decision
+//         │        └─ the groove that passes for rigor
+//         ├─ the cognitive lightcone
+//         └─ diverse forms of intelligence
+const PT1 = 'meaning-lives-in-between-the-gaps-of-language-pt1'
+const PT2 = 'minimizing-entropy-in-intelligent-systems-pt2'
+
+// pt.1 anchors the top-left; its two sprouts (lightcone, diverse) fan up-right,
+// while pt.2 drops straight down and its three children fan out below it. The
+// whole tree is centered under the page content (it's the only graph now).
+const AI_NODES: Record<string, { x: number; y: number }> = {
+  [PT1]: { x: -10, y: 700 },
+  'diverse-forms-of-intelligence': { x: 510, y: 740 },
+  'the-cognitive-lightcone': { x: 360, y: 880 },
+  [PT2]: { x: 50, y: 940 },
+  'entropy-duality': { x: -190, y: 1100 },
+  'the-vessel-shapes-the-decision': { x: 70, y: 1150 },
+  'the-groove-that-passes-for-rigor': { x: 380, y: 1120 },
+}
+
+const AI_ORDER = [
+  PT1,
+  PT2,
+  'the-cognitive-lightcone',
+  'diverse-forms-of-intelligence',
+  'entropy-duality',
+  'the-vessel-shapes-the-decision',
+  'the-groove-that-passes-for-rigor',
 ]
 
-// A post belongs to the XR subgraph if its primary theme is the XR thread;
-// everything else (context/graphs + cognition/coordination) is the AI subgraph.
-function subgraphIdFor(themes: string[]): 'xr' | 'ai' {
-  return themes[0] === 'XR & interfaces' ? 'xr' : 'ai'
-}
+const AI_EDGES: [string, string][] = [
+  [PT1, PT2],
+  [PT1, 'the-cognitive-lightcone'],
+  [PT1, 'diverse-forms-of-intelligence'],
+  [PT2, 'entropy-duality'],
+  [PT2, 'the-vessel-shapes-the-decision'],
+  [PT2, 'the-groove-that-passes-for-rigor'],
+]
 
 interface ExternalLink {
   label: string
@@ -261,20 +288,37 @@ function App() {
       .map((slug) => blogBySlug.get(slug))
       .filter((b): b is BlogContent => b !== undefined)
 
-    const subgraphs = RESEARCH_SUBGRAPHS.map((sg) => {
-      const nodes: GraphNode[] = members
-        .filter((b) => subgraphIdFor(b.themes) === sg.id)
-        .map((b) => ({ slug: b.slug, date: b.date }))
-      const { placements, edges } = placeSubgraph(nodes, sg.layout)
-      return { ...sg, placements, edges }
-    })
+    const aiSlugs = new Set(Object.keys(AI_NODES))
+
+    // Field notes — every research post not claimed by the AI tree, as a date
+    // serpentine. Hidden unless SHOW_FIELD_NOTES; still computed so the toggle
+    // is all it takes to bring it back.
+    const fieldNotes = placeSubgraph(
+      members
+        .filter((b) => !aiSlugs.has(b.slug))
+        .map((b) => ({ slug: b.slug, date: b.date })),
+      FIELD_NOTES_LAYOUT,
+    )
+
+    // AI — authored tree positions + edges.
+    const aiPlacements = AI_ORDER.filter((slug) =>
+      members.some((b) => b.slug === slug),
+    ).map((slug) => ({ slug, x: AI_NODES[slug].x, y: AI_NODES[slug].y }))
+    const aiEdges = AI_EDGES.map(([from, to]) => ({ from, to }))
+
+    const subgraphs = [
+      ...(SHOW_FIELD_NOTES
+        ? [{ placements: fieldNotes.placements, edges: fieldNotes.edges }]
+        : []),
+      { placements: aiPlacements, edges: aiEdges },
+    ]
 
     const placements = subgraphs.flatMap((g) => g.placements)
     const edges = subgraphs.flatMap((g) => g.edges)
     const posBySlug = new Map(placements.map((p) => [p.slug, p]))
     const postBySlug = new Map(members.map((b) => [b.slug, b]))
 
-    return { subgraphs, placements, edges, posBySlug, postBySlug }
+    return { placements, edges, posBySlug, postBySlug }
   })()
 
   const handleTabClick = (id: RootId) => {
@@ -593,32 +637,19 @@ function App() {
               const a = researchGraph.posBySlug.get(edge.from)
               const b = researchGraph.posBySlug.get(edge.to)
               if (!a || !b) return null
+              // Quadratic curve that sags downward with the edge's horizontal
+              // span — horizontal edges droop like a wire, vertical ones stay
+              // near-straight.
+              const cx = (a.x + b.x) / 2
+              const cy = (a.y + b.y) / 2 + 0.15 * Math.abs(b.x - a.x)
               return (
-                <line
+                <path
                   key={`${edge.from}-${edge.to}`}
                   className="graph-edge"
-                  x1={a.x}
-                  y1={a.y}
-                  x2={b.x}
-                  y2={b.y}
+                  d={`M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`}
                 />
               )
             })}
-
-            {researchGraph.subgraphs.map((sg) => (
-              <text
-                key={`title-${sg.id}`}
-                x={sg.layout.centerX}
-                y={sg.layout.top + SUBGRAPH_TITLE_DY}
-                textAnchor="middle"
-                fill="var(--tx-tertiary)"
-                fontSize={14}
-                fontFamily="var(--font-mono)"
-                style={{ letterSpacing: '0.04em' }}
-              >
-                {sg.label}
-              </text>
-            ))}
 
             {researchGraph.placements.map((p) => {
               const post = researchGraph.postBySlug.get(p.slug)
