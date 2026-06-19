@@ -466,6 +466,15 @@ html, body {
   overflow-wrap: break-word;
 }
 
+/* Headings use primary text (h6 is a muted caption, left as-is). */
+.modal-body h1,
+.modal-body h2,
+.modal-body h3,
+.modal-body h4,
+.modal-body h5 {
+  color: var(--tx-primary);
+}
+
 @keyframes modal-backdrop-in {
   from {
     opacity: 0;
