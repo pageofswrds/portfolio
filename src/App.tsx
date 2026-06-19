@@ -61,11 +61,13 @@ const LINK_HEIGHT = 40
 const LINK_RX = 8
 const LINK_GAP = 12
 const LINK_FONT_SIZE = 14
-const LINK_ROW_OFFSET_X = -200
+// Left edge for About/Research body content — aligned to the identity photo's
+// left edge (like the Product grid), not the narrower name/tab column.
+const CONTENT_LEFT_X = -(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200)
 
 // Research panel: thesis copy + a row of static "research thread" nodes, sitting
 // above the post funnel — mirrors the About panel's copy-above-items pattern.
-const RESEARCH_PANEL_X = LINK_ROW_OFFSET_X
+const RESEARCH_PANEL_X = CONTENT_LEFT_X
 const RESEARCH_PANEL_Y = ABOUT_BODY_Y
 const RESEARCH_PANEL_WIDTH = ABOUT_BODY_WIDTH
 // Generous fixed box: quote (~90) + copy (~270) + thread row (32) + gaps,
@@ -75,7 +77,7 @@ const RESEARCH_PANEL_HEIGHT = 480
 const RESEARCH_BODY_FONT_SIZE = ABOUT_BODY_FONT_SIZE
 
 // Product is a 2-column card grid, filled left→right, top→down in member order.
-// Left column's left edge aligns with the tab row / content (LINK_ROW_OFFSET_X).
+// Left column's left edge aligns with the identity photo's left edge.
 const PRODUCT_CARD_HEIGHT = IMAGE_HEIGHT + 62 // image + ProjectCard caption
 // Left column's left edge aligns with the identity photo's left edge.
 const PRODUCT_COL0_X =
@@ -188,6 +190,12 @@ const ThreadsIcon = (
   </svg>
 )
 
+const XIcon = (
+  <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+)
+
 const CORE_DETAILS_LINKS: ExternalLink[] = [
   { label: 'LinkedIn', href: 'https://linkedin.com/in/schultzdavidg', width: 120, icon: LinkedInIcon },
   {
@@ -204,7 +212,8 @@ const CORE_DETAILS_LINKS: ExternalLink[] = [
   },
   { label: 'studiozojer.co', href: 'https://studiozojer.co', width: 140, icon: StudioIcon },
   { label: 'Bluesky', href: 'https://bsky.app/profile/pageofswrds.kairos.solar', width: 110, icon: BlueskyIcon },
-  { label: 'Threads', href: 'https://www.threads.com/@studiozojer', width: 110, icon: ThreadsIcon },
+  { label: 'Threads', href: 'https://www.threads.com/@l.ifelike', width: 110, icon: ThreadsIcon },
+  { label: 'X', href: 'https://x.com/pageofswrds', width: 80, icon: XIcon },
 ]
 
 const projectBySlug = new Map(projects.map((p) => [p.slug, p]))
@@ -376,7 +385,7 @@ function App() {
         {/* About panel — body copy above the external links row */}
         {activeRoot === 'about' && (
           <foreignObject
-            x={LINK_ROW_OFFSET_X}
+            x={CONTENT_LEFT_X}
             y={ABOUT_BODY_Y}
             width={ABOUT_BODY_WIDTH}
             height={ABOUT_BODY_HEIGHT}
@@ -403,7 +412,7 @@ function App() {
         )}
 
         {activeRoot === 'about' && (
-          <g transform={`translate(${LINK_ROW_OFFSET_X}, ${LINK_PANEL_Y})`}>
+          <g transform={`translate(${CONTENT_LEFT_X}, ${LINK_PANEL_Y})`}>
             {(() => {
               let xCursor = 0
               return CORE_DETAILS_LINKS.map((link) => {
@@ -554,7 +563,7 @@ function App() {
         {/* A fleeting idea, tacked up to the right of the research copy */}
         {activeRoot === 'research' && (
           <StickyNote
-            x={430}
+            x={218}
             y={150}
             width={236}
             rotate={-4}
