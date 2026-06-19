@@ -100,8 +100,39 @@ export function Link({ href, target, children }: LinkProps) {
   )
 }
 
+// Poem — verse with tight line spacing (avoids the paragraph gaps that
+// blank-line-separated lines get). Pass the verse via `text`: single newlines
+// are line breaks, blank lines are stanza breaks.
+interface PoemProps {
+  text: string
+}
+
+export function Poem({ text }: PoemProps) {
+  const lines = text.replace(/^\n+|\n+$/g, '').split('\n')
+  return (
+    <div
+      style={{
+        margin: '1.5rem 0 2rem',
+        fontFamily: 'var(--font-sans)',
+        fontSize: '1.05rem',
+        lineHeight: 1.55,
+        color: 'var(--tx-primary)',
+      }}
+    >
+      {lines.map((line, i) =>
+        line.trim() === '' ? (
+          <div key={i} style={{ height: '0.85em' }} aria-hidden="true" />
+        ) : (
+          <div key={i}>{line.trim()}</div>
+        ),
+      )}
+    </div>
+  )
+}
+
 // MDX component overrides
 export const mdxComponents = {
+  Poem,
   VideoPlayer,
   DemoButton,
   Button,
