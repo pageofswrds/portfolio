@@ -164,6 +164,13 @@
   --bd-accent: hsl(var(--accent) / 0.35);
 }
 
+/* Light-mode base surface: a warmer cream. Overrides the palette-derived
+   --bg-base (hsl(var(--light-100))) for the light theme only — dark theme
+   keeps the palette mapping, and --tx-button stays on --light-100. */
+.light {
+  --bg-base: #f2e9d9;
+}
+
 /* ============================================
    BASE STYLES
    ============================================ */
