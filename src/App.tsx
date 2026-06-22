@@ -78,12 +78,12 @@ const RESEARCH_BODY_FONT_SIZE = ABOUT_BODY_FONT_SIZE
 
 // Product is a 2-column card grid, filled left→right, top→down in member order.
 // Left column's left edge aligns with the identity photo's left edge.
-const PRODUCT_CARD_HEIGHT = IMAGE_HEIGHT + 62 // image + ProjectCard caption
+const PRODUCT_CARD_HEIGHT = IMAGE_HEIGHT + 44 // image + ProjectCard caption (TEXT_AREA_HEIGHT)
 // Left column's left edge aligns with the identity photo's left edge.
 const PRODUCT_COL0_X =
   -(IDENTITY_ANCHOR_SIZE + IDENTITY_GAP + 200) + CARD_WIDTH / 2
 const PRODUCT_COL_GAP = 48
-const PRODUCT_ROW_GAP = 56
+const PRODUCT_ROW_GAP = 40
 const PRODUCT_ROW0_Y = 300 // first row's card center
 
 // The post graph is two independent subgraphs — XR/interaction work, and the

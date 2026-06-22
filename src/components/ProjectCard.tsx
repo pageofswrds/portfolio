@@ -10,7 +10,8 @@ interface ProjectCardProps {
 }
 
 // Caption sized to a single-line title + year (no opaque card background).
-const TEXT_AREA_HEIGHT = 62
+// Keep in sync with PRODUCT_CARD_HEIGHT's caption term in App.tsx.
+const TEXT_AREA_HEIGHT = 44
 const FIXED_ASPECT_RATIO = 16 / 10
 
 export function ProjectCard({
@@ -77,8 +78,9 @@ export function ProjectCard({
           style={{
             padding: '14px 2px 0',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '3px',
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            gap: '12px',
           }}
         >
           <div
@@ -88,10 +90,11 @@ export function ProjectCard({
               fontFamily: 'var(--font-sans)',
               fontWeight: 500,
               lineHeight: 1.2,
+              flex: '1 1 auto',
+              minWidth: 0,
               overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {title}
@@ -101,6 +104,8 @@ export function ProjectCard({
               color: 'var(--tx-tertiary)',
               fontSize: '15px',
               fontFamily: 'var(--font-mono)',
+              flex: '0 0 auto',
+              whiteSpace: 'nowrap',
             }}
           >
             {year}
