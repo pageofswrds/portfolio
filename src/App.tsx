@@ -490,7 +490,7 @@ function App() {
             >
               <blockquote
                 style={{
-                  margin: 0,
+                  margin: '16px 0 0',
                   paddingLeft: '20px',
                   borderLeft: '2px solid var(--bd-hover)',
                   display: 'flex',
