@@ -21,8 +21,8 @@ export const ROOTS: Record<RootId, RootDefinition> = {
     members: [
       'kairos',
       'terrariumxr',
-      'layer',
       'layerpitch',
+      'layer',
       'acquire',
       'sureui',
       'arboretum',
