@@ -48,6 +48,8 @@ export const ROOTS: Record<RootId, RootDefinition> = {
       'minimizing-entropy-in-intelligent-systems-pt2',
       'the-groove-that-passes-for-rigor',
       'the-cognitive-lightcone',
+      // floater — a standalone argument, deliberately unconnected (see FLOATERS in App.tsx)
+      'language-is-the-world-model',
       // field notes (hidden) — not in the AI tree, so they fall into the
       // field-notes bucket. Old past-work blogs parked here.
       'devlog01',

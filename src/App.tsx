@@ -13,7 +13,7 @@ import { BlogModal } from './components/BlogModal'
 import { IdentityPhoto } from './components/IdentityPhoto'
 import { projects, blogPosts, type ProjectContent, type BlogContent } from './content'
 import { ROOT_IDS, ROOTS, type RootId } from './content/categories'
-import { placeSubgraph, type SubgraphLayout } from './layout/graph'
+import { placeSubgraph, type SubgraphLayout, type GraphEdge } from './layout/graph'
 
 const FOCAL_X = 0
 const FOCAL_Y = 0
@@ -147,6 +147,13 @@ const AI_EDGES: [string, string][] = [
   [PT2, 'the-vessel-shapes-the-decision'],
   [PT2, 'the-groove-that-passes-for-rigor'],
 ]
+
+// Floaters — standalone posts placed as unconnected islands (no edges). Each is a
+// finished argument that doesn't thread into the AI tree; it sits alone in the left
+// margin, clear of the tree's span (which runs x −190..510). Add a slug→position here.
+const FLOATERS: Record<string, { x: number; y: number }> = {
+  'language-is-the-world-model': { x: -470, y: 760 },
+}
 
 interface ExternalLink {
   label: string
@@ -285,11 +292,18 @@ function App() {
     ).map((slug) => ({ slug, x: AI_NODES[slug].x, y: AI_NODES[slug].y }))
     const aiEdges = AI_EDGES.map(([from, to]) => ({ from, to }))
 
+    // Floaters — unconnected islands (no edges). Rendered only if the slug is a
+    // member and has a real post behind it.
+    const floaterPlacements = Object.entries(FLOATERS)
+      .filter(([slug]) => members.some((b) => b.slug === slug))
+      .map(([slug, pos]) => ({ slug, x: pos.x, y: pos.y }))
+
     const subgraphs = [
       ...(SHOW_FIELD_NOTES
         ? [{ placements: fieldNotes.placements, edges: fieldNotes.edges }]
         : []),
       { placements: aiPlacements, edges: aiEdges },
+      { placements: floaterPlacements, edges: [] as GraphEdge[] },
     ]
 
     const placements = subgraphs.flatMap((g) => g.placements)
